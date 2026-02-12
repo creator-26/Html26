@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Para mi Niña Preciosa ❤️</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: linear-gradient(135deg, #ffe4e1 0%, #ffb6c1 100%);
+            overflow-x: hidden;
+            touch-action: manipulation;
+        }
+
+        .cursive {
+            font-family: 'Dancing Script', cursive;
+        }
+
+        .floating-heart {
+            position: absolute;
+            color: #ff4d6d;
+            animation: float 6s linear infinite;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(255, 77, 109, 0.2);
+            border-radius: 2rem;
+        }
+
+        #btn-no {
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 1s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- Corazones de fondo -->
+    <div id="hearts-container"></div>
+
+    <!-- Contenedor Principal -->
+    <main class="card max-w-md w-full p-8 text-center relative z-10 fade-in">
+        
+        <!-- Pantalla Inicial -->
+        <div id="main-screen">
+            <h2 class="text-pink-600 text-2xl font-bold mb-2">Para mi pequeña niña... 🧸</h2>
+            <h1 class="cursive text-4xl text-pink-500 mb-6 leading-tight">Hola, mi preciosa Cami ❤️</h1>
+            
+            <p class="text-gray-700 mb-8 leading-relaxed">
+                Hoy es 14 de febrero y no quería dejar pasar el día sin decirte lo especial que eres para mí, mi pequeñuela. Eres lo más bonito que me ha pasado y quiero que esto sea algo más que solo palabras...
+            </p>
+
+            <div class="bg-pink-50 rounded-xl p-4 mb-8">
+                <p class="text-pink-700 font-semibold text-lg">
+                    ¿Puedo ser tu novio oficialmente y tu futuro esposito si se logra? ❤️🥺
+                </p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <button id="btn-si" onclick="celebrate()" class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-10 rounded-full shadow-lg transform active:scale-95 transition pulse">
+                    ¡SÍ! 😍
+                </button>
+                <button id="btn-no" onmouseover="moveButton()" onclick="rejected()" class="bg-gray-400 text-white font-bold py-3 px-10 rounded-full shadow-lg">
+                    NO 😢
+                </button>
+            </div>
+        </div>
+
+        <!-- Pantalla de ÉXITO (SI) -->
+        <div id="success-screen" class="hidden fade-in">
+            <div class="text-6xl mb-4">🥰❤️💍</div>
+            <h2 class="cursive text-4xl text-pink-600 mb-4">¡Gracias mi amor!</h2>
+            <p class="text-gray-700 text-lg mb-6">
+                Te amooo mi preciosa Cami 🥰. Me haces el hombre más feliz del mundo. 
+            </p>
+            <div class="space-y-4 text-pink-700 font-medium">
+                <p>Prometo cuidarte siempre, mi pequeña niña.</p>
+                <p>Hay que mejorar como pareja día a día y construir ese futuro que tanto soñamos juntos.</p>
+                <p>¡Eres mi hoy y mi siempre! ❤️</p>
+            </div>
+            <div class="mt-8">
+                <p class="text-sm text-gray-500 italic">Escríbeme por WhatsApp ahora mismo para darte un beso virtual 😘</p>
+            </div>
+        </div>
+
+        <!-- Pantalla de ERROR (NO) - Solo si logra darle click -->
+        <div id="rejected-screen" class="hidden fade-in">
+            <div class="text-6xl mb-4">🤧😞❤️</div>
+            <h2 class="text-2xl font-bold text-gray-700 mb-4">¡Por favor mi amorcito!</h2>
+            <p class="text-gray-600 mb-6">
+                Yo te amo mucho mi bebita... No me hagas esto 🥺. ¿Segura que no quieres reconsiderarlo?
+            </p>
+            <button onclick="reset()" class="text-pink-500 font-bold underline">
+                Está bien, volveré a elegir...
+            </button>
+        </div>
+
+    </main>
+
+    <script>
+        // Generar corazones flotantes de fondo
+        function createHearts() {
+            const container = document.getElementById('hearts-container');
+            const icons = ['❤️', '💖', '💕', '💗', '✨'];
+            for (let i = 0; i < 20; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'floating-heart';
+                heart.innerText = icons[Math.floor(Math.random() * icons.length)];
+                heart.style.left = Math.random() * 100 + 'vw';
+                heart.style.animationDelay = Math.random() * 5 + 's';
+                heart.style.fontSize = (Math.random() * 20 + 10) + 'px';
+                container.appendChild(heart);
+            }
+        }
+
+        // Mover el botón NO cuando se intenta tocar
+        function moveButton() {
+            const btnNo = document.getElementById('btn-no');
+            // Solo se mueve en dispositivos que no sean puramente táctiles o al hacer hover
+            const x = Math.random() * (window.innerWidth - btnNo.offsetWidth - 50);
+            const y = Math.random() * (window.innerHeight - btnNo.offsetHeight - 50);
+            
+            btnNo.style.position = 'fixed';
+            btnNo.style.left = x + 'px';
+            btnNo.style.top = y + 'px';
+            btnNo.style.zIndex = '1000';
+        }
+
+        // Si logra darle click al NO (por ejemplo en móvil rápido)
+        function rejected() {
+            document.getElementById('main-screen').classList.add('hidden');
+            document.getElementById('rejected-screen').classList.remove('hidden');
+        }
+
+        // Acción al darle al SÍ
+        function celebrate() {
+            document.getElementById('main-screen').classList.add('hidden');
+            document.getElementById('rejected-screen').classList.add('hidden');
+            document.getElementById('success-screen').classList.remove('hidden');
+            
+            // Efecto de explosión de corazones extra
+            for (let i = 0; i < 50; i++) {
+                setTimeout(createBurstHeart, i * 50);
+            }
+        }
+
+        function createBurstHeart() {
+            const heart = document.createElement('div');
+            heart.innerText = '❤️';
+            heart.style.position = 'fixed';
+            heart.style.left = '50%';
+            heart.style.top = '50%';
+            heart.style.fontSize = '24px';
+            heart.style.pointerEvents = 'none';
+            heart.style.zIndex = '100';
+            
+            const destinationX = (Math.random() - 0.5) * window.innerWidth;
+            const destinationY = (Math.random() - 0.5) * window.innerHeight;
+            
+            document.body.appendChild(heart);
+            
+            const animation = heart.animate([
+                { transform: 'translate(-50%, -50%) scale(0)', opacity: 1 },
+                { transform: `translate(calc(-50% + ${destinationX}px), calc(-50% + ${destinationY}px)) scale(1.5)`, opacity: 0 }
+            ], {
+                duration: 1500,
+                easing: 'ease-out'
+            });
+
+            animation.onfinish = () => heart.remove();
+        }
+
+        function reset() {
+            const btnNo = document.getElementById('btn-no');
+            btnNo.style.position = 'relative';
+            btnNo.style.left = 'auto';
+            btnNo.style.top = 'auto';
+            document.getElementById('rejected-screen').classList.add('hidden');
+            document.getElementById('main-screen').classList.remove('hidden');
+        }
+
+        window.onload = createHearts;
+    </script>
+</body>
+</html>
+
