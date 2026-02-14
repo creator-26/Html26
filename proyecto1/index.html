@@ -1,24 +1,32 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Proyecto1 - Lista de Tareas</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proyecto1 PRO</title>
+
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<div class="container">
-    <h1>📝 Mis Tareas</h1>
+<div class="app">
+
+    <header>
+        <h1>✅ Mis Tareas</h1>
+        <button id="themeToggle">🌙</button>
+    </header>
 
     <div class="input-area">
-        <input type="text" id="taskInput" placeholder="Escribe una tarea...">
+        <input id="taskInput" type="text" placeholder="Nueva tarea...">
         <button onclick="addTask()">Agregar</button>
     </div>
 
     <ul id="taskList"></ul>
+
 </div>
+
+<audio id="completeSound" src="sound.mp3"></audio>
 
 <script src="script.js"></script>
 </body>
