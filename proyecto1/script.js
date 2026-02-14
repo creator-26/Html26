@@ -11,6 +11,18 @@ function saveTasks() {
     localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
+/* ========= SONIDO SEGURO ========= */
+
+function playSound() {
+    if (!sound) return;
+
+    sound.volume = 0.25; // sonido tranquilo
+    sound.currentTime = 0;
+
+    // evita error en celulares
+    sound.play().catch(() => {});
+}
+
 /* ========= MOSTRAR ========= */
 
 function renderTasks() {
@@ -26,8 +38,7 @@ function renderTasks() {
 
         li.onclick = () => {
             tasks[index].completed = !tasks[index].completed;
-            sound.currentTime = 0;
-            sound.play();
+            playSound(); // 🔊 sonido
             saveTasks();
             renderTasks();
         };
