@@ -1,9 +1,28 @@
-const boton = document.getElementById("boton");
-const titulo = document.getElementById("titulo");
-const texto = document.getElementById("texto");
+function addTask() {
+    const input = document.getElementById("taskInput");
+    const taskText = input.value.trim();
 
-boton.addEventListener("click", function () {
-    titulo.style.color = "yellow";
-    texto.textContent = "✅ JavaScript está funcionando correctamente!";
-    console.log("El botón fue presionado");
-});
+    if (taskText === "") return;
+
+    const li = document.createElement("li");
+    li.textContent = taskText;
+
+    // marcar completado
+    li.onclick = function () {
+        li.classList.toggle("completed");
+    };
+
+    // botón eliminar
+    const deleteBtn = document.createElement("button");
+    deleteBtn.textContent = "❌";
+    deleteBtn.onclick = function (e) {
+        e.stopPropagation();
+        li.remove();
+    };
+
+    li.appendChild(deleteBtn);
+
+    document.getElementById("taskList").appendChild(li);
+
+    input.value = "";
+}
