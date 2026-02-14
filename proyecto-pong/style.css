@@ -1,32 +1,250 @@
-body{
-    margin:0;
-    background:#0f172a;
-    font-family:Arial;
-    overflow:hidden;
-    color:white;
+:root {
+    --primary: #22c55e;
+    --primary-hover: #16a34a;
+    --bg-dark: #020617;
+    --glass: rgba(255, 255, 255, 0.05);
+    --border: rgba(255, 255, 255, 0.1);
+    --easy: #3b82f6;
+    --medium: #f59e0b;
+    --hard: #ef4444;
 }
 
-canvas{
-    display:block;
-    background:#020617;
+body {
+    margin: 0;
+    background: var(--bg-dark);
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    overflow: hidden;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
 }
 
-#startScreen{
-    position:absolute;
-    inset:0;
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    align-items:center;
-    text-align:center;
-    background:#020617;
+canvas {
+    display: block;
+    background: #000;
 }
 
-button{
-    padding:12px 25px;
-    border:none;
-    border-radius:10px;
-    font-size:18px;
-    background:#22c55e;
-    color:white;
+/* Pantalla de Inicio Estilizada */
+#startScreen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+    z-index: 10;
+    padding: 20px;
 }
+
+.menu-card {
+    background: var(--glass);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid var(--border);
+    padding: 35px;
+    border-radius: 28px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    max-width: 420px;
+    width: 90%;
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+h1 {
+    font-size: 2.5rem;
+    margin: 0;
+    background: linear-gradient(to bottom, #fff 40%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -1px;
+}
+
+.subtitle {
+    color: #64748b;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-bottom: 25px;
+    display: block;
+}
+
+/* Selector de Dificultad */
+.difficulty-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+    justify-content: center;
+}
+
+.diff-btn {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.03);
+    color: #94a3b8;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.diff-btn.active[data-level="easy"] { background: var(--easy); color: white; border-color: var(--easy); box-shadow: 0 0 15px rgba(59, 130, 246, 0.4); }
+.diff-btn.active[data-level="medium"] { background: var(--medium); color: white; border-color: var(--medium); box-shadow: 0 0 15px rgba(245, 158, 11, 0.4); }
+.diff-btn.active[data-level="hard"] { background: var(--hard); color: white; border-color: var(--hard); box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+
+.instructions {
+    background: rgba(0,0,0,0.2);
+    border-radius: 18px;
+    padding: 18px;
+    margin-bottom: 25px;
+    text-align: left;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.instruction-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+    color: #f1f5f9; /* más claro para mejor legibilidad */
+}
+
+.instruction-item:last-child { margin-bottom: 0; }
+
+.icon {
+    font-size: 1.1rem;
+    margin-right: 12px;
+    background: rgba(255,255,255,0.05);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 8px;
+}
+
+#startBtn {
+    width: 100%;
+    padding: 18px;
+    border: none;
+    border-radius: 16px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    background: var(--primary);
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 10px 20px -5px rgba(34, 197, 94, 0.4);
+}
+
+#startBtn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+}
+
+/* Marcador en pantalla */
+#gameUI {
+    position: absolute;
+    top: 40px;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    pointer-events: none;
+    font-size: 5rem;
+    font-weight: 900;
+    font-family: 'Courier New', monospace;
+    opacity: 0.3; /* ligeramente más visible */
+    z-index: 5;
+    color: white;
+}
+
+/* Botón de pausa */
+.pause-btn {
+    position: absolute;
+    top: 20px;
+    right: 10px;
+    z-index: 20;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    font-size: 22px;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    display: none; /* Oculto por defecto */
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+}
+
+.pause-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+/* Menú de pausa */
+.pause-menu {
+    position: absolute;
+    inset: 0;
+    z-index: 30;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+}
+
+.pause-card {
+    background: var(--glass);
+    backdrop-filter: blur(15px);
+    border: 1px solid var(--border);
+    padding: 30px;
+    border-radius: 28px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    color: white;
+    min-width: 280px;
+}
+
+.pause-card h2 {
+    margin-top: 0;
+    margin-bottom: 25px;
+    font-size: 2rem;
+}
+
+.pause-card button {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 16px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    background: var(--primary);
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.pause-card button:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+}
+
+.pause-card button:last-child {
+    background: #ef4444;
+    box-shadow: 0 10px 20px -5px rgba(239, 68, 68, 0.4);
+    }
