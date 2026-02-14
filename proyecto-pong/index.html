@@ -1,26 +1,60 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pong Pro</title>
-<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong Pro - Selección de Dificultad</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
 <div id="startScreen">
-    <h1>🏓 Pong Pro</h1>
-    <p>
-        👉 Mueve tu dedo para controlar la paleta<br>
-        👉 Primero en llegar a 10 puntos gana
-    </p>
-    <button id="startBtn">Jugar</button>
+    <div class="menu-card">
+        <span class="subtitle">Ultimate Pong Experience</span>
+        <h1 id="menuTitle">🏓 PONG PRO</h1>
+        
+        <p style="color: #94a3b8; font-size: 0.9rem; margin: 15px 0;">Selecciona tu nivel:</p>
+        <div class="difficulty-container">
+            <button class="diff-btn" data-level="easy">FÁCIL</button>
+            <button class="diff-btn active" data-level="medium">NORMAL</button>
+            <button class="diff-btn" data-level="hard">DIFÍCIL</button>
+        </div>
+
+        <div class="instructions">
+            <div class="instruction-item">
+                <span class="icon">👆</span>
+                <span>Desliza para mover tu paleta</span>
+            </div>
+            <div class="instruction-item">
+                <span class="icon">🏆</span>
+                <span>Primero en anotar 10 puntos</span>
+            </div>
+        </div>
+
+        <button id="startBtn">COMENZAR JUEGO</button>
+    </div>
+</div>
+
+<div id="gameUI">
+    <span id="p1Display">0</span>
+    <span id="p2Display">0</span>
 </div>
 
 <canvas id="game"></canvas>
 
-<audio id="hitSound" src="pelota.mp3"></audio>
+<!-- Elemento de audio para el sonido de la pelota -->
+<audio id="hitSound" src="pelota.mp3" preload="auto"></audio>
+<!-- Botón de pausa (oculto inicialmente) -->
+<div id="pauseButton" class="pause-btn">⏸️</div>
+
+<!-- Menú de pausa (oculto inicialmente) -->
+<div id="pauseMenu" class="pause-menu" style="display: none;">
+    <div class="pause-card">
+        <h2>Juego en pausa</h2>
+        <button id="resumeBtn">Reanudar</button>
+        <button id="exitToMenuBtn">Salir al menú</button>
+    </div>
+</div>
 
 <script src="script.js"></script>
 </body>
