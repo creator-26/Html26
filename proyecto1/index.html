@@ -1,22 +1,25 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Prueba Web</title>
-
-  <!-- conectar CSS -->
-  <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyecto1 - Lista de Tareas</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<h1 id="titulo">🚀 Mi página funciona</h1>
+<div class="container">
+    <h1>📝 Mis Tareas</h1>
 
-<button id="boton">Cambiar color</button>
+    <div class="input-area">
+        <input type="text" id="taskInput" placeholder="Escribe una tarea...">
+        <button onclick="addTask()">Agregar</button>
+    </div>
 
-<p id="texto">Presiona el botón para probar JavaScript</p>
+    <ul id="taskList"></ul>
+</div>
 
-<!-- conectar JS -->
 <script src="script.js"></script>
 </body>
 </html>
