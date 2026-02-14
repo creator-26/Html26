@@ -1,0 +1,32 @@
+body{
+    margin:0;
+    background:#0f172a;
+    font-family:Arial;
+    overflow:hidden;
+    color:white;
+}
+
+canvas{
+    display:block;
+    background:#020617;
+}
+
+#startScreen{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    background:#020617;
+}
+
+button{
+    padding:12px 25px;
+    border:none;
+    border-radius:10px;
+    font-size:18px;
+    background:#22c55e;
+    color:white;
+}
