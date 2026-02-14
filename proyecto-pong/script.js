@@ -1,199 +1,262 @@
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
-const startScreen = document.getElementById("startScreen");
-const startBtn = document.getElementById("startBtn");
-const sound = document.getElementById("hitSound");
+document.addEventListener('DOMContentLoaded', () => {
+    // Obtener elementos del DOM
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const startScreen = document.getElementById("startScreen");
+    const startBtn = document.getElementById("startBtn");
+    const diffBtns = document.querySelectorAll(".diff-btn");
+    const p1Display = document.getElementById("p1Display");
+    const p2Display = document.getElementById("p2Display");
+    const menuTitle = document.getElementById("menuTitle");
+    const hitSound = document.getElementById("hitSound");
 
-/* ========= RESPONSIVE ========= */
+    // Nuevos elementos para pausa
+    const pauseButton = document.getElementById("pauseButton");
+    const pauseMenu = document.getElementById("pauseMenu");
+    const resumeBtn = document.getElementById("resumeBtn");
+    const exitToMenuBtn = document.getElementById("exitToMenuBtn");
 
-function resize(){
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-}
-resize();
-window.addEventListener("resize", resize);
+    // Estado del juego
+    let playing = false;
+    let paused = false;
+    let currentLevel = "medium";
 
-/* ========= OBJETOS ========= */
+    // Configuración de dificultad
+    const config = {
+        easy:   { ballSpeed: 5, botReaction: 0.05, label: "Modo Fácil" },
+        medium: { ballSpeed: 5.5, botReaction: 0.06, label: "Modo Normal" },
+        hard:   { ballSpeed: 8, botReaction: 0.08, label: "Modo Difícil" }
+    };
 
-const paddleWidth = 12;
-const paddleHeight = 110;
+    // Manejo de botones de dificultad
+    diffBtns.forEach(btn => {
+        btn.onclick = () => {
+            diffBtns.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            currentLevel = btn.dataset.level;
+        };
+    });
 
-let playerY = canvas.height/2;
-let targetY = playerY;
-let botY = canvas.height/2;
+    // Ajustar tamaño del canvas
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resize);
+    resize();
 
-let playerScore = 0;
-let botScore = 0;
-const maxScore = 10;
+    // Objetos del juego
+    const paddleW = 16;
+    const paddleH = 110;
+    let playerY = canvas.height / 2 - paddleH / 2;
+    let targetY = playerY;
+    let botY = canvas.height / 2 - paddleH / 2;
+    let p1Score = 0;
+    let p2Score = 0;
 
-let ball = {
-    x: canvas.width/2,
-    y: canvas.height/2,
-    vx: 6,
-    vy: 4,
-    r: 10
-};
+    let ball = {
+        x: 0, y: 0, vx: 0, vy: 0, r: 8
+    };
 
-let playing = false;
+    // Controles (solo si el juego está activo y no pausado)
+    const handleMove = (y) => {
+        const rect = canvas.getBoundingClientRect();
+        targetY = y - rect.top - paddleH / 2;
+    };
 
-/* ========= CONTROL TÁCTIL ========= */
+    canvas.addEventListener("touchmove", e => {
+        if (!playing || paused) return; // No mover si está pausado
+        e.preventDefault();
+        handleMove(e.touches[0].clientY);
+    }, { passive: false });
 
-canvas.addEventListener("touchmove", e=>{
-    e.preventDefault();
-    const rect = canvas.getBoundingClientRect();
-    targetY = e.touches[0].clientY - rect.top;
-},{passive:false});
+    canvas.addEventListener("mousemove", e => {
+        if (!playing || paused) return;
+        handleMove(e.clientY);
+    });
 
-/* ========= REINICIAR PELOTA ========= */
-
-function resetBall(){
-    ball.x = canvas.width/2;
-    ball.y = canvas.height/2;
-
-    ball.vx *= -1;
-    ball.vy = (Math.random()*6)-3;
-}
-
-/* ========= IA REALISTA ========= */
-
-function updateBot(){
-    let center = botY + paddleHeight/2;
-
-    // retraso humano
-    botY += (ball.y - center) * 0.08;
-}
-
-/* ========= FÍSICAS ========= */
-
-function update(){
-
-    // movimiento suave jugador
-    playerY += (targetY - playerY) * 0.25;
-
-    playerY = Math.max(0,
-        Math.min(canvas.height - paddleHeight, playerY)
-    );
-
-    updateBot();
-
-    ball.x += ball.vx;
-    ball.y += ball.vy;
-
-    // rebote arriba abajo
-    if(ball.y < 0 || ball.y > canvas.height){
-        ball.vy *= -1;
-        sound.currentTime=0;
-        sound.play();
+    // Función para reproducir sonido
+    function playHitSound() {
+        if (hitSound) {
+            hitSound.currentTime = 0;
+            hitSound.play().catch(e => console.log("Error al reproducir sonido:", e));
+        }
     }
 
-    // jugador golpe
-    if(
-        ball.x < 25 &&
-        ball.y > playerY &&
-        ball.y < playerY+paddleHeight
-    ){
-        let collide =
-        (ball.y-(playerY+paddleHeight/2))/(paddleHeight/2);
-
-        ball.vx = Math.abs(ball.vx);
-        ball.vy = collide * 8;
-
-        sound.currentTime=0;
-        sound.play();
+    // Reiniciar pelota
+    function resetBall(winner) {
+        ball.x = canvas.width / 2;
+        ball.y = canvas.height / 2;
+        const speed = config[currentLevel].ballSpeed;
+        let direction = 1;
+        if (winner === 'player') direction = -1;
+        if (winner === 'bot') direction = 1;
+        ball.vx = direction * speed;
+        ball.vy = (Math.random() * speed) - (speed / 2);
     }
 
-    // bot golpe
-    if(
-        ball.x > canvas.width-25 &&
-        ball.y > botY &&
-        ball.y < botY+paddleHeight
-    ){
-        let collide =
-        (ball.y-(botY+paddleHeight/2))/(paddleHeight/2);
+    // Lógica de actualización
+    function update() {
+        // Movimiento jugador
+        playerY += (targetY - playerY) * 0.2;
+        playerY = Math.max(0, Math.min(canvas.height - paddleH, playerY));
 
-        ball.vx = -Math.abs(ball.vx);
-        ball.vy = collide * 8;
+        // IA del bot
+        let botCenter = botY + paddleH / 2;
+        botY += (ball.y - botCenter) * config[currentLevel].botReaction;
+        botY = Math.max(0, Math.min(canvas.height - paddleH, botY));
 
-        sound.currentTime=0;
-        sound.play();
+        // Movimiento pelota
+        ball.x += ball.vx;
+        ball.y += ball.vy;
+
+        // Colisión techo/suelo
+        if (ball.y - ball.r < 0 || ball.y + ball.r > canvas.height) {
+            ball.vy *= -1;
+            playHitSound();
+        }
+
+        // Colisión paleta jugador
+        if (ball.vx < 0 && ball.x < 15 + paddleW) {
+            if (ball.y > playerY && ball.y < playerY + paddleH) {
+                let impact = (ball.y - (playerY + paddleH / 2)) / (paddleH / 2);
+                ball.vx = Math.abs(ball.vx);
+                ball.vy = impact * Math.abs(ball.vx) * 0.8;
+                playHitSound();
+            }
+        }
+
+        // Colisión paleta bot
+        if (ball.vx > 0 && ball.x > canvas.width - 15 - paddleW) {
+            if (ball.y > botY && ball.y < botY + paddleH) {
+                let impact = (ball.y - (botY + paddleH / 2)) / (paddleH / 2);
+                ball.vx = -Math.abs(ball.vx);
+                ball.vy = impact * Math.abs(ball.vx) * 0.8;
+                playHitSound();
+            }
+        }
+
+        // Goles
+        if (ball.x < 0) {
+            p2Score++;
+            p2Display.textContent = p2Score;
+            resetBall('bot');
+        }
+        if (ball.x > canvas.width) {
+            p1Score++;
+            p1Display.textContent = p1Score;
+            resetBall('player');
+        }
+
+        // Fin de partida
+        if (p1Score >= 10 || p2Score >= 10) {
+            playing = false;
+            pauseButton.style.display = "none"; // Ocultar botón de pausa
+            setTimeout(() => {
+                menuTitle.textContent = p1Score >= 10 ? "¡VICTORIA! 🏆" : "DERROTA 🤖";
+                startScreen.style.display = "flex";
+                p1Score = 0;
+                p2Score = 0;
+                p1Display.textContent = "0";
+                p2Display.textContent = "0";
+            }, 500);
+        }
     }
 
-    /* puntos */
+    // Dibujado
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    if(ball.x < 0){
-        botScore++;
-        resetBall();
+        // Línea central
+        ctx.strokeStyle = "rgba(255,255,255,0.05)";
+        ctx.setLineDash([15, 15]);
+        ctx.beginPath();
+        ctx.moveTo(canvas.width / 2, 0);
+        ctx.lineTo(canvas.width / 2, canvas.height);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = "white";
+
+        // Paletas
+        ctx.beginPath();
+        ctx.roundRect(15, playerY, paddleW, paddleH, 6);
+        ctx.roundRect(canvas.width - paddleW - 15, botY, paddleW, paddleH, 6);
+        ctx.fill();
+
+        // Pelota
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "white";
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
     }
 
-    if(ball.x > canvas.width){
-        playerScore++;
-        resetBall();
+    // Bucle principal
+    function gameLoop() {
+        if (playing && !paused) {
+            update();
+            draw();
+        } else if (playing && paused) {
+            // Solo dibujar (congelado)
+            draw();
+        }
+        requestAnimationFrame(gameLoop);
     }
 
-    /* ganador */
+    // Botón de pausa
+    pauseButton.addEventListener("click", () => {
+        if (playing) {
+            paused = true;
+            pauseMenu.style.display = "flex";
+        }
+    });
 
-    if(playerScore===maxScore || botScore===maxScore){
-        playing=false;
+    // Botón reanudar
+    resumeBtn.addEventListener("click", () => {
+        paused = false;
+        pauseMenu.style.display = "none";
+    });
 
-        setTimeout(()=>{
-            alert(
-                playerScore>botScore ?
-                "🏆 Ganaste!" :
-                "🤖 Gana el bot"
-            );
+    // Botón salir al menú
+    exitToMenuBtn.addEventListener("click", () => {
+        playing = false;
+        paused = false;
+        pauseMenu.style.display = "none";
+        startScreen.style.display = "flex";
+        pauseButton.style.display = "none";
+        // Reiniciar puntuaciones
+        p1Score = 0;
+        p2Score = 0;
+        p1Display.textContent = "0";
+        p2Display.textContent = "0";
+        menuTitle.textContent = "🏓 PONG PRO";
+    });
 
-            playerScore=0;
-            botScore=0;
-            resetBall();
-            startScreen.style.display="flex";
-        },100);
+    // Iniciar juego
+    startBtn.onclick = () => {
+        startScreen.style.display = "none";
+        playing = true;
+        paused = false;
+        pauseButton.style.display = "flex"; // Mostrar botón de pausa
+        resetBall(); // Saca hacia la derecha
+    };
+
+    // Iniciar bucle
+    gameLoop();
+
+    // Polyfill para roundRect
+    if (!CanvasRenderingContext2D.prototype.roundRect) {
+        CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+            if (w < 2 * r) r = w / 2;
+            if (h < 2 * r) r = h / 2;
+            this.moveTo(x + r, y);
+            this.arcTo(x + w, y, x + w, y + h, r);
+            this.arcTo(x + w, y + h, x, y + h, r);
+            this.arcTo(x, y + h, x, y, r);
+            this.arcTo(x, y, x + w, y, r);
+            return this;
+        };
     }
-}
-
-/* ========= DIBUJO ========= */
-
-function draw(){
-
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-
-    ctx.fillStyle="white";
-
-    // jugador
-    ctx.fillRect(10,playerY,paddleWidth,paddleHeight);
-
-    // bot
-    ctx.fillRect(
-        canvas.width-22,
-        botY,
-        paddleWidth,
-        paddleHeight
-    );
-
-    // pelota
-    ctx.beginPath();
-    ctx.arc(ball.x,ball.y,ball.r,0,Math.PI*2);
-    ctx.fill();
-
-    // marcador
-    ctx.font="40px Arial";
-    ctx.fillText(playerScore,canvas.width/4,60);
-    ctx.fillText(botScore,canvas.width*3/4,60);
-}
-
-/* ========= LOOP PRO ========= */
-
-function gameLoop(){
-    if(playing){
-        update();
-        draw();
-    }
-    requestAnimationFrame(gameLoop);
-}
-gameLoop();
-
-/* ========= INICIO ========= */
-
-startBtn.onclick=()=>{
-    startScreen.style.display="none";
-    playing=true;
-};
+});
