@@ -20,12 +20,18 @@ document.addEventListener('DOMContentLoaded', () => {
     let playing = false;
     let paused = false;
     let currentLevel = "medium";
+    // Nuevas variables para el sistema de preparación
+let ballReady = false;        // Indica si la pelota está lista para moverse
+let serveTimer = 0;           // Contador para el tiempo de espera
+let ballSpeedMultiplier = 1;  // Multiplicador de velocidad (inicia lento)
+const SERVE_DELAY = 1000;     // 1 segundos de espera en milisegundos
+const INITIAL_SPEED_FACTOR = 0.3; // 30% de la velocidad normal al inicio
 
     // Configuración de dificultad
     const config = {
         easy:   { ballSpeed: 5, botReaction: 0.05, label: "Modo Fácil" },
-        medium: { ballSpeed: 5.5, botReaction: 0.06, label: "Modo Normal" },
-        hard:   { ballSpeed: 8, botReaction: 0.08, label: "Modo Difícil" }
+        medium: { ballSpeed: 6.5, botReaction: 0.07, label: "Modo Normal" },
+        hard:   { ballSpeed: 8, botReaction: 0.10, label: "Modo Difícil" }
     };
 
     // Manejo de botones de dificultad
@@ -85,83 +91,125 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Reiniciar pelota
     function resetBall(winner) {
-        ball.x = canvas.width / 2;
-        ball.y = canvas.height / 2;
-        const speed = config[currentLevel].ballSpeed;
-        let direction = 1;
-        if (winner === 'player') direction = -1;
-        if (winner === 'bot') direction = 1;
-        ball.vx = direction * speed;
-        ball.vy = (Math.random() * speed) - (speed / 2);
-    }
+    // Posición central
+    ball.x = canvas.width / 2;
+    ball.y = canvas.height / 2;
+    
+    // La pelota NO se mueve inicialmente
+    ball.vx = 0;
+    ball.vy = 0;
+    
+    // Indicamos que la pelota no está lista (en espera)
+    ballReady = false;
+    
+    // Guardamos la dirección que debería tomar cuando empiece
+    const speed = config[currentLevel].ballSpeed;
+    
+    // Por defecto (inicio) saca hacia la derecha (hacia el bot)
+    let direction = 1;
+    if (winner === 'player') direction = -1;
+    if (winner === 'bot') direction = 1;
+    
+    // Guardamos la dirección para usarla después
+    ball.direction = direction;
+    ball.baseSpeed = speed;
+    
+    // Iniciamos el temporizador de espera
+    serveTimer = Date.now() + SERVE_DELAY;
+    
+    // Reiniciamos el multiplicador de velocidad
+    ballSpeedMultiplier = INITIAL_SPEED_FACTOR;
+}
 
     // Lógica de actualización
     function update() {
-        // Movimiento jugador
-        playerY += (targetY - playerY) * 0.2;
-        playerY = Math.max(0, Math.min(canvas.height - paddleH, playerY));
+    // Movimiento suave del jugador
+    playerY += (targetY - playerY) * 0.2;
+    playerY = Math.max(0, Math.min(canvas.height - paddleH, playerY));
 
-        // IA del bot
+    // IA del bot (solo si la pelota está en movimiento)
+    if (ballReady) {
         let botCenter = botY + paddleH / 2;
         botY += (ball.y - botCenter) * config[currentLevel].botReaction;
         botY = Math.max(0, Math.min(canvas.height - paddleH, botY));
+    }
 
-        // Movimiento pelota
+    // === NUEVA LÓGICA DE PREPARACIÓN ===
+    // Verificamos si la pelota debe empezar a moverse
+    if (!ballReady && serveTimer && Date.now() > serveTimer) {
+        // ¡Tiempo cumplido! La pelota empieza a moverse lentamente
+        ball.vx = ball.direction * ball.baseSpeed * ballSpeedMultiplier;
+        ball.vy = (Math.random() * ball.baseSpeed * ballSpeedMultiplier) - (ball.baseSpeed * ballSpeedMultiplier / 2);
+        ballReady = true;
+    }
+
+    // Movimiento de la pelota (solo si está lista)
+    if (ballReady) {
         ball.x += ball.vx;
         ball.y += ball.vy;
+    }
+    // ===============================
 
-        // Colisión techo/suelo
-        if (ball.y - ball.r < 0 || ball.y + ball.r > canvas.height) {
-            ball.vy *= -1;
+    // Colisión techo/suelo
+    if (ballReady && (ball.y - ball.r < 0 || ball.y + ball.r > canvas.height)) {
+        ball.vy *= -1;
+        playHitSound();
+    }
+
+    // Colisión paleta jugador
+    if (ballReady && ball.vx < 0 && ball.x < 15 + paddleW) {
+        if (ball.y > playerY && ball.y < playerY + paddleH) {
+            let impact = (ball.y - (playerY + paddleH / 2)) / (paddleH / 2);
+            
+            // Cuando el jugador golpea la pelota, ¡aceleramos a velocidad normal!
+            ballSpeedMultiplier = 1.0; // Velocidad normal
+            ball.vx = Math.abs(ball.baseSpeed) * ballSpeedMultiplier;
+            ball.vy = impact * ball.baseSpeed * ballSpeedMultiplier * 0.8;
+            
             playHitSound();
         }
+    }
 
-        // Colisión paleta jugador
-        if (ball.vx < 0 && ball.x < 15 + paddleW) {
-            if (ball.y > playerY && ball.y < playerY + paddleH) {
-                let impact = (ball.y - (playerY + paddleH / 2)) / (paddleH / 2);
-                ball.vx = Math.abs(ball.vx);
-                ball.vy = impact * Math.abs(ball.vx) * 0.8;
-                playHitSound();
-            }
-        }
-
-        // Colisión paleta bot
-        if (ball.vx > 0 && ball.x > canvas.width - 15 - paddleW) {
-            if (ball.y > botY && ball.y < botY + paddleH) {
-                let impact = (ball.y - (botY + paddleH / 2)) / (paddleH / 2);
-                ball.vx = -Math.abs(ball.vx);
-                ball.vy = impact * Math.abs(ball.vx) * 0.8;
-                playHitSound();
-            }
-        }
-
-        // Goles
-        if (ball.x < 0) {
-            p2Score++;
-            p2Display.textContent = p2Score;
-            resetBall('bot');
-        }
-        if (ball.x > canvas.width) {
-            p1Score++;
-            p1Display.textContent = p1Score;
-            resetBall('player');
-        }
-
-        // Fin de partida
-        if (p1Score >= 10 || p2Score >= 10) {
-            playing = false;
-            pauseButton.style.display = "none"; // Ocultar botón de pausa
-            setTimeout(() => {
-                menuTitle.textContent = p1Score >= 10 ? "¡VICTORIA! 🏆" : "DERROTA 🤖";
-                startScreen.style.display = "flex";
-                p1Score = 0;
-                p2Score = 0;
-                p1Display.textContent = "0";
-                p2Display.textContent = "0";
-            }, 500);
+    // Colisión paleta bot
+    if (ballReady && ball.vx > 0 && ball.x > canvas.width - 15 - paddleW) {
+        if (ball.y > botY && ball.y < botY + paddleH) {
+            let impact = (ball.y - (botY + paddleH / 2)) / (paddleH / 2);
+            
+            // También aceleramos si el bot la golpea (para ser justos)
+            ballSpeedMultiplier = 1.0;
+            ball.vx = -Math.abs(ball.baseSpeed) * ballSpeedMultiplier;
+            ball.vy = impact * ball.baseSpeed * ballSpeedMultiplier * 0.8;
+            
+            playHitSound();
         }
     }
+
+    // Goles
+    if (ball.x < 0) {
+        p2Score++;
+        p2Display.textContent = p2Score;
+        resetBall('bot');
+    }
+    if (ball.x > canvas.width) {
+        p1Score++;
+        p1Display.textContent = p1Score;
+        resetBall('player');
+    }
+
+    // Fin de partida
+    if (p1Score >= 10 || p2Score >= 10) {
+        playing = false;
+        pauseButton.style.display = "none";
+        setTimeout(() => {
+            menuTitle.textContent = p1Score >= 10 ? "¡VICTORIA! 🏆" : "DERROTA 🤖";
+            startScreen.style.display = "flex";
+            p1Score = 0;
+            p2Score = 0;
+            p1Display.textContent = "0";
+            p2Display.textContent = "0";
+        }, 500);
+    }
+}
 
     // Dibujado
     function draw() {
