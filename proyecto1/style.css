@@ -1,68 +1,120 @@
-body {
+* {
+    box-sizing: border-box;
     font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #4facfe, #00f2fe);
+}
+
+body {
     margin: 0;
-    height: 100vh;
+    background: #f0f2f5;
     display: flex;
     justify-content: center;
     align-items: center;
+    height: 100vh;
 }
 
-.container {
+/* APP */
+.app {
+    width: 100%;
+    max-width: 420px;
+    height: 100vh;
     background: white;
     padding: 20px;
-    border-radius: 12px;
-    width: 90%;
-    max-width: 400px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-}
-
-h1 {
-    text-align: center;
-}
-
-.input-area {
     display: flex;
-    gap: 10px;
+    flex-direction: column;
 }
 
-input {
-    flex: 1;
-    padding: 10px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-}
-
-button {
-    padding: 10px;
-    border: none;
-    background: #4facfe;
-    color: white;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-button:hover {
-    background: #2f8cff;
-}
-
-ul {
-    list-style: none;
-    padding: 0;
-    margin-top: 20px;
-}
-
-li {
-    background: #f3f3f3;
-    padding: 10px;
-    margin-bottom: 8px;
-    border-radius: 6px;
+/* HEADER */
+header {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.completed {
+h1 {
+    font-size: 22px;
+}
+
+#themeToggle {
+    border: none;
+    background: transparent;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+/* INPUT */
+.input-area {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+input {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+button {
+    padding: 12px;
+    border: none;
+    background: #4facfe;
+    color: white;
+    border-radius: 8px;
+}
+
+/* LISTA */
+ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+    overflow-y: auto;
+}
+
+li {
+    background: #f5f5f5;
+    padding: 14px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: 0.3s;
+    animation: aparecer 0.3s ease;
+}
+
+li.completed {
     text-decoration: line-through;
-    opacity: 0.6;
+    opacity: 0.5;
+}
+
+@keyframes aparecer {
+    from {
+        transform: translateY(10px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* 🌙 MODO OSCURO */
+.dark {
+    background: #121212;
+    color: white;
+}
+
+.dark .app {
+    background: #1e1e1e;
+}
+
+.dark li {
+    background: #2c2c2c;
+}
+
+.dark input {
+    background: #2c2c2c;
+    color: white;
+    border: none;
 }
