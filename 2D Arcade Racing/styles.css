@@ -1,0 +1,291 @@
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+body { 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    height: 100vh; 
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    overflow: hidden; 
+    font-family: 'Arial', sans-serif;
+}
+
+.game-container { 
+    position: relative; 
+    width: 320px; 
+    height: 560px; 
+    background: linear-gradient(to bottom, #444, #222);
+    overflow: hidden; 
+    border: 5px solid white; 
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+#startScreen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(0,0,0,0.7));
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+#startButton {
+    padding: 20px 40px;
+    font-size: 28px;
+    background: linear-gradient(145deg, #4CAF50, #45a049);
+    color: white;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.2);
+    transition: all 0.1s ease;
+    margin-top: 20px;
+    font-weight: bold;
+}
+
+#startButton:active {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+}
+
+.game-title {
+    color: white;
+    font-size: 36px;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    margin-bottom: 10px;
+}
+
+.high-score {
+    color: #ffd700;
+    font-size: 18px;
+    margin-bottom: 30px;
+}
+
+.pista { 
+    position: absolute; 
+    width: 100%; 
+    height: 100%; 
+    background: linear-gradient(to bottom, #555, #333);
+    will-change: transform;
+}
+
+.pista::before {
+    content: '';
+    position: absolute;
+    width: 4px;
+    height: 100%;
+    left: 50%;
+    margin-left: -2px;
+    background: repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent 15px,
+        white 15px,
+        white 25px
+    );
+    animation: lineMove 0.3s linear infinite;
+}
+
+@keyframes lineMove {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(25px); }
+}
+
+.auto { 
+    position: absolute; 
+    width: 44px; 
+    height: 70px; 
+    bottom: 60px; 
+    left: 138px;
+    background-image: url('auto.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    transition: transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: transform;
+    z-index: 10;
+}
+
+.obstaculo { 
+    position: absolute; 
+    width: 40px; 
+    height: 40px; 
+    top: -50px;
+    font-size: 32px;
+    text-align: center;
+    line-height: 40px;
+    filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5));
+    will-change: transform;
+}
+
+.controles { 
+    display: flex; 
+    justify-content: space-between; 
+    width: 100%; 
+    position: absolute; 
+    bottom: 0;
+    padding: 10px;
+    background: rgba(0,0,0,0.3);
+}
+
+.controles button {
+    width: 48%;
+    height: 70px;
+    padding: 10px;
+    font-size: 32px;
+    font-weight: bold;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: all 0.1s ease;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.controles button::active {
+    transform: translateY(4px);
+    box-shadow: 0 1px 0 rgba(0,0,0,0.3);
+}
+
+.controles button.pressed {
+    transform: translateY(4px);
+    box-shadow: 0 1px 0 rgba(0,0,0,0.3);
+}
+
+.controles button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255,255,255,0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s, height 0.3s;
+}
+
+.controles button.pressed::before {
+    width: 200px;
+    height: 200px;
+}
+
+#btnIzquierda {
+    background: linear-gradient(145deg, #e74c3c, #c0392b);
+    margin-right: 4px;
+}
+
+#btnDerecha {
+    background: linear-gradient(145deg, #3498db, #2980b9);
+}
+
+.pantalla { 
+    position: absolute; 
+    width: 100%; 
+    height: 100%; 
+    background: rgba(0, 0, 0, 0.85); 
+    color: white; 
+    font-size: 28px; 
+    display: flex; 
+    flex-direction: column;
+    justify-content: center; 
+    align-items: center; 
+    display: none; 
+    z-index: 100;
+    padding: 20px;
+}
+
+.pantalla p {
+    margin: 10px 0;
+    font-weight: bold;
+}
+
+.pantalla button {
+    margin-top: 20px;
+    padding: 15px 30px;
+    font-size: 20px;
+    background: linear-gradient(145deg, #4CAF50, #45a049);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+}
+
+.pantalla button:active {
+    transform: translateY(4px);
+    box-shadow: 0 1px 0 rgba(0,0,0,0.2);
+}
+
+.puntaje { 
+    position: absolute; 
+    top: 15px; 
+    left: 15px; 
+    color: white; 
+    font-size: 20px;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    z-index: 5;
+}
+
+.stats {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    color: white;
+    font-size: 18px;
+    z-index: 5;
+}
+
+.vida {
+    display: inline-block;
+    margin-left: 5px;
+    font-size: 24px;
+}
+
+.power-up {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    top: -50px;
+    font-size: 28px;
+    text-align: center;
+    line-height: 40px;
+    filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5));
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.explosion {
+    position: absolute;
+    font-size: 48px;
+    pointer-events: none;
+    animation: explode 0.5s ease-out forwards;
+}
+
+@keyframes explode {
+    0% { transform: scale(0) rotate(0deg); opacity: 1; }
+    100% { transform: scale(2) rotate(180deg); opacity: 0; }
+  }
