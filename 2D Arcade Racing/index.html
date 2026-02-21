@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Juego de Carreras Pro</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="startScreen">
+    <div class="game-title">🏁 CARRERAS PRO 🏁</div>
+    <div class="high-score" id="highScoreDisplay">Mejor puntuación: 0</div>
+    <button id="startButton">▶ Iniciar Juego</button>
+</div>
+
+<audio id="gameAudio" loop>
+    <source src="audio/audio1.mp3" type="audio/mpeg">
+</audio>
+<audio id="collisionSound">
+    <source src="audio/audio2.mp3" type="audio/mpeg">
+</audio>
+<audio id="powerupSound">
+    <source src="audio/audio3.mp3" type="audio/mpeg">
+</audio>
+
+<div class="game-container">
+    <div class="pista"></div>
+    <div class="puntaje" id="puntaje">Puntos: 0</div>
+    <div class="stats">
+        <span id="nivel">Nivel: 1</span>
+        <span class="vida" id="vidas">❤️❤️❤️</span>
+    </div>
+    <div class="auto" id="auto"></div>
+
+    <div class="pantalla" id="pantallaPerdiste">
+        <p>💥 ¡CHOQUE! 💥</p>
+        <p id="finalScore"></p>
+        <p id="newRecord" style="color: #ffd700; display: none;">¡NUEVO RÉCORD! 🏆</p>
+        <button onclick="reiniciarJuego()">🔄 Jugar de nuevo</button>
+    </div>
+
+    <div class="pantalla" id="pantallaGanaste">
+        <p>🏆 ¡VICTORIA! 🏆</p>
+        <p id="finalScoreWin"></p>
+        <button onclick="reiniciarJuego()">🔄 Jugar de nuevo</button>
+    </div>
+
+    <div class="controles">
+        <button id="btnIzquierda">⬅</button>
+        <button id="btnDerecha">➡</button>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
