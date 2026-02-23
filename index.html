@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tarea List</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app-wrap">
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <h1>Flu<span>x</span></h1>
+      <p id="date-label">Gestor de tareas</p>
+    </div>
+    <div class="header-controls">
+      <button class="btn-icon" id="theme-btn" title="Cambiar tema" aria-label="Cambiar modo claro/oscuro">🌙</button>
+    </div>
+  </header>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat-chip">
+      <span class="dot"></span>
+      <strong id="stat-total">0</strong> total
+    </div>
+    <div class="stat-chip">
+      <span class="dot green"></span>
+      <strong id="stat-done">0</strong> completadas
+    </div>
+    <div class="stat-chip">
+      <span class="dot" style="background:var(--muted)"></span>
+      <strong id="stat-pending">0</strong> pendientes
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span>Progreso general</span>
+      <span id="progress-pct">0%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <!-- Input -->
+  <div class="input-card">
+    <div class="input-group" style="flex:2 1 220px">
+      <label for="task-input">Nueva tarea</label>
+      <input
+        type="text"
+        id="task-input"
+        placeholder="Escribe aquí tu tarea…"
+        maxlength="120"
+        autocomplete="off"
+      />
+    </div>
+    <div class="input-group" style="flex:1 1 120px">
+      <label for="priority-select">Prioridad</label>
+      <select id="priority-select">
+        <option value="high">Alta 🔴</option>
+        <option value="medium" selected>Media 🟡</option>
+        <option value="low">Baja 🟢</option>
+      </select>
+    </div>
+    <button class="btn-primary" id="add-btn">Agregar</button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-row" id="filter-row">
+    <button class="filter-btn active" data-filter="all">Todas</button>
+    <button class="filter-btn" data-filter="pending">Pendientes</button>
+    <button class="filter-btn" data-filter="done">Completadas</button>
+    <button class="filter-btn" data-filter="high">Alta prioridad</button>
+  </div>
+
+  <!-- Task list -->
+  <div class="task-list" id="task-list"></div>
+
+  <!-- Footer -->
+  <div class="footer-row">
+    <button class="btn-ghost" id="clear-done-btn">Limpiar completadas</button>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script src="script.js" defer></script>
+</body>
+</html>
