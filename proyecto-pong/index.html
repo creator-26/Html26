@@ -2,57 +2,53 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pong Pro - Selección de Dificultad</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Juego de Carreras Pro</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
 <div id="startScreen">
-    <div class="menu-card">
-        <span class="subtitle">Ultimate Pong Experience</span>
-        <h1 id="menuTitle">🏓 PONG PRO</h1>
-        
-        <p style="color: #94a3b8; font-size: 0.9rem; margin: 15px 0;">Selecciona tu nivel:</p>
-        <div class="difficulty-container">
-            <button class="diff-btn" data-level="easy">FÁCIL</button>
-            <button class="diff-btn active" data-level="medium">NORMAL</button>
-            <button class="diff-btn" data-level="hard">DIFÍCIL</button>
-        </div>
+    <div class="game-title">🏁 CARRERAS PRO 🏁</div>
+    <div class="high-score" id="highScoreDisplay">Mejor puntuación: 0</div>
+    <button id="startButton">▶ Iniciar Juego</button>
+</div>
 
-        <div class="instructions">
-            <div class="instruction-item">
-                <span class="icon">👆</span>
-                <span>Desliza para mover tu paleta</span>
-            </div>
-            <div class="instruction-item">
-                <span class="icon">🏆</span>
-                <span>Primero en anotar 10 puntos</span>
-            </div>
-        </div>
+<audio id="gameAudio" loop>
+    <source src="audio/audio1.mp3" type="audio/mpeg">
+</audio>
+<audio id="collisionSound">
+    <source src="audio/audio2.mp3" type="audio/mpeg">
+</audio>
+<audio id="powerupSound">
+    <source src="audio/audio3.mp3" type="audio/mpeg">
+</audio>
 
-        <button id="startBtn">COMENZAR JUEGO</button>
+<div class="game-container">
+    <div class="pista"></div>
+    <div class="puntaje" id="puntaje">Puntos: 0</div>
+    <div class="stats">
+        <span id="nivel">Nivel: 1</span>
+        <span class="vida" id="vidas">❤️❤️❤️</span>
     </div>
-</div>
+    <div class="auto" id="auto"></div>
 
-<div id="gameUI">
-    <span id="p1Display">0</span>
-    <span id="p2Display">0</span>
-</div>
+    <div class="pantalla" id="pantallaPerdiste">
+        <p>💥 ¡CHOQUE! 💥</p>
+        <p id="finalScore"></p>
+        <p id="newRecord" style="color: #ffd700; display: none;">¡NUEVO RÉCORD! 🏆</p>
+        <button onclick="reiniciarJuego()">🔄 Jugar de nuevo</button>
+    </div>
 
-<canvas id="game"></canvas>
+    <div class="pantalla" id="pantallaGanaste">
+        <p>🏆 ¡VICTORIA! 🏆</p>
+        <p id="finalScoreWin"></p>
+        <button onclick="reiniciarJuego()">🔄 Jugar de nuevo</button>
+    </div>
 
-<!-- Elemento de audio para el sonido de la pelota -->
-<audio id="hitSound" src="pelota.mp3" preload="auto"></audio>
-<!-- Botón de pausa (oculto inicialmente) -->
-<div id="pauseButton" class="pause-btn">⏸️</div>
-
-<!-- Menú de pausa (oculto inicialmente) -->
-<div id="pauseMenu" class="pause-menu" style="display: none;">
-    <div class="pause-card">
-        <h2>Juego en pausa</h2>
-        <button id="resumeBtn">Reanudar</button>
-        <button id="exitToMenuBtn">Salir al menú</button>
+    <div class="controles">
+        <button id="btnIzquierda">⬅</button>
+        <button id="btnDerecha">➡</button>
     </div>
 </div>
 
