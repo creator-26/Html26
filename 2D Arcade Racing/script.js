@@ -1,29 +1,44 @@
-// Sistema de High Score con localStorage
+// High Score
 let highScore = localStorage.getItem('carrerasHighScore') || 0;
 document.getElementById('highScoreDisplay').innerText = `Mejor puntuación: ${highScore}`;
 
-// Variables mejoradas
-const gameAudio = document.getElementById('gameAudio');
-const collisionSound = document.getElementById('collisionSound');
-const powerupSound = document.getElementById('powerupSound');
+// Elementos
 const auto = document.getElementById("auto");
 const gameContainer = document.querySelector(".game-container");
 const pantallaPerdiste = document.getElementById("pantallaPerdiste");
 const pantallaGanaste = document.getElementById("pantallaGanaste");
-const finalScore = document.getElementById("finalScore");
-const finalScoreWin = document.getElementById("finalScoreWin");
 const puntajeTexto = document.getElementById("puntaje");
 const nivelTexto = document.getElementById("nivel");
 const vidasTexto = document.getElementById("vidas");
 const startScreen = document.getElementById("startScreen");
+const finalScore = document.getElementById("finalScore");
+const finalScoreWin = document.getElementById("finalScoreWin");
 
-let autoPos = 138;
-let velocidadBase = 3;
-let velocidadActual = 3;
+// NUEVOS Elementos de Pausa
+const btnPausa = document.getElementById("btnPausa");
+const pantallaPausa = document.getElementById("pantallaPausa");
+const btnReanudar = document.getElementById("btnReanudar");
+const btnSalirMenu = document.getElementById("btnSalirMenu");
+
+// Audios
+const gameAudio = document.getElementById('gameAudio');
+const collisionSound = document.getElementById('collisionSound');
+const powerupSound = document.getElementById('powerupSound');
+
+// Dimensiones dinámicas de la pantalla
+let screenWidth = window.innerWidth;
+let screenHeight = window.innerHeight;
+let autoWidth = 60; 
+
+// Variables del juego
+let autoPos = (screenWidth / 2) - (autoWidth / 2);
+let velocidadBase = 4;
+let velocidadActual = 4;
 let puntuacion = 0;
 let nivel = 1;
 let vidas = 3;
 let jugando = false;
+let enPausa = false; // NUEVA VARIABLE PARA LA PAUSA
 let moviendoIzquierda = false;
 let moviendoDerecha = false;
 let obstaculos = [];
@@ -33,7 +48,13 @@ let animacionId = null;
 let invulnerable = false;
 let invulnerableTime = 0;
 
-// Sistema de partículas
+// Actualizar dimensiones si se gira el móvil
+window.addEventListener('resize', () => {
+    screenWidth = window.innerWidth;
+    screenHeight = window.innerHeight;
+    if (autoPos > screenWidth - autoWidth) autoPos = screenWidth - autoWidth;
+});
+
 function crearExplosion(x, y) {
     const explosion = document.createElement('div');
     explosion.className = 'explosion';
@@ -47,13 +68,12 @@ function crearExplosion(x, y) {
 function crearObstaculos() {
     obstaculos.forEach(obs => obs.remove());
     obstaculos = [];
-    
     for (let i = 0; i < 3; i++) {
         const obs = document.createElement("div");
         obs.className = "obstaculo";
         obs.innerHTML = "🚧";
-        obs.style.left = Math.random() * 240 + "px";
-        obs.style.top = (-60 - (i * 180)) + "px";
+        obs.style.left = Math.random() * (screenWidth - 60) + "px";
+        obs.style.top = (-120 - (i * (screenHeight / 3))) + "px";
         gameContainer.appendChild(obs);
         obstaculos.push(obs);
     }
@@ -64,30 +84,31 @@ function crearPowerUp() {
         const powerUp = document.createElement("div");
         powerUp.className = "power-up";
         powerUp.innerHTML = "⭐";
-        powerUp.style.left = Math.random() * 240 + "px";
-        powerUp.style.top = "-60px";
+        powerUp.style.left = Math.random() * (screenWidth - 60) + "px";
+        powerUp.style.top = "-100px";
         gameContainer.appendChild(powerUp);
         powerUps.push(powerUp);
     }
 }
 
 function moverAuto() {
-    if (!jugando) return;
+    if (!jugando || enPausa) return; // Si está en pausa, no se mueve
+    const velocidad = screenWidth * 0.02; 
+    const margen = 5;
+    const limiteIzq = margen;
+    const limiteDer = screenWidth - autoWidth - margen;
     
-    const velocidad = 4;
-    
-    if (moviendoIzquierda && autoPos > 5) {
+    if (moviendoIzquierda && autoPos > limiteIzq) {
         autoPos -= velocidad;
-        auto.style.transform = "rotate(-8deg) translateZ(0)";
+        auto.style.transform = "rotate(-8deg)";
     }
-    if (moviendoDerecha && autoPos < 265) {
+    if (moviendoDerecha && autoPos < limiteDer) {
         autoPos += velocidad;
-        auto.style.transform = "rotate(8deg) translateZ(0)";
+        auto.style.transform = "rotate(8deg)";
     }
     if (!moviendoIzquierda && !moviendoDerecha) {
-        auto.style.transform = "rotate(0deg) translateZ(0)";
+        auto.style.transform = "rotate(0deg)";
     }
-    
     auto.style.left = autoPos + "px";
 }
 
@@ -100,26 +121,24 @@ function actualizarNivel() {
 function detectarColision(elemento, esPowerUp = false) {
     const autoRect = auto.getBoundingClientRect();
     const elementRect = elemento.getBoundingClientRect();
-    const margen = esPowerUp ? 10 : 5;
+    const margen = esPowerUp ? 10 : 15; 
     
-    const colision = autoRect.left < elementRect.right - margen &&
-                   autoRect.right > elementRect.left + margen &&
-                   autoRect.top < elementRect.bottom - margen &&
-                   autoRect.bottom > elementRect.top + margen;
-    
-    return colision;
+    return autoRect.left < elementRect.right - margen &&
+           autoRect.right > elementRect.left + margen &&
+           autoRect.top < elementRect.bottom - margen &&
+           autoRect.bottom > elementRect.top + margen;
 }
 
 function gameLoop() {
     if (!jugando) return;
-    
     animacionId = requestAnimationFrame(gameLoop);
-    frames++;
     
-    // Mover auto
+    // NUEVO: ¡Magia de la pausa! Si está en pausa, congela todo aquí y no ejecuta lo de abajo
+    if (enPausa) return; 
+    
+    frames++;
     moverAuto();
     
-    // Actualizar invulnerabilidad
     if (invulnerable) {
         invulnerableTime--;
         auto.style.opacity = invulnerableTime % 10 < 5 ? '0.5' : '1';
@@ -129,71 +148,60 @@ function gameLoop() {
         }
     }
     
-    // Mover y crear obstáculos
-    if (frames % 2 === 0) {
-        obstaculos.forEach(obs => {
-            let top = parseFloat(obs.style.top) || 0;
-            top += velocidadActual;
-            
-            if (top >= 560) {
-                top = -60;
-                obs.style.left = Math.random() * 250 + "px";
-                puntuacion += 1;
-                puntajeTexto.innerText = `Puntos: ${puntuacion}`;
-                actualizarNivel();
-            }
-            
-            obs.style.top = top + "px";
-            
-            if (!invulnerable && detectarColision(obs)) {
-                collisionSound.currentTime = 0;
-                collisionSound.play().catch(() => {});
-                crearExplosion(autoPos + 22, 450);
-                vidas--;
-                actualizarVidas();
-                
-                if (vidas <= 0) {
-                    finDelJuego();
-                } else {
-                    invulnerable = true;
-                    invulnerableTime = 120; // 2 segundos a 60fps
-                }
-            }
-        });
+    obstaculos.forEach(obs => {
+        let top = parseFloat(obs.style.top) || 0;
+        top += velocidadActual;
         
-        // Mover power-ups
-        powerUps.forEach((powerUp, index) => {
-            let top = parseFloat(powerUp.style.top) || 0;
-            top += velocidadActual;
+        if (top >= screenHeight) {
+            top = -100;
+            obs.style.left = Math.random() * (screenWidth - 60) + "px";
+            puntuacion += 1;
+            puntajeTexto.innerText = `Puntos: ${puntuacion}`;
+            actualizarNivel();
+        }
+        obs.style.top = top + "px";
+        
+        if (!invulnerable && detectarColision(obs)) {
+            if(collisionSound) { collisionSound.currentTime = 0; collisionSound.play().catch(()=>{}); }
+            const autoRect = auto.getBoundingClientRect();
+            crearExplosion(autoRect.left, autoRect.top);
             
-            if (top >= 560) {
-                powerUp.remove();
-                powerUps.splice(index, 1);
-                return;
-            }
+            vidas--;
+            actualizarVidas();
             
-            powerUp.style.top = top + "px";
-            
-            if (detectarColision(powerUp, true)) {
-                powerupSound.currentTime = 0;
-                powerupSound.play().catch(() => {});
-                powerUp.remove();
-                powerUps.splice(index, 1);
-                puntuacion += 5;
-                puntajeTexto.innerText = `Puntos: ${puntuacion}`;
+            if (vidas <= 0) {
+                finDelJuego();
+            } else {
                 invulnerable = true;
-                invulnerableTime = 180; // 3 segundos
+                invulnerableTime = 120;
             }
-        });
-        
-        // Crear power-ups ocasionalmente
-        if (frames % 300 === 0) crearPowerUp();
-    }
+        }
+    });
     
-    // Verificar victoria
-    if (puntuacion >= 200) {
-        victoria();
-    }
+    powerUps.forEach((powerUp, index) => {
+        let top = parseFloat(powerUp.style.top) || 0;
+        top += velocidadActual;
+        
+        if (top >= screenHeight) {
+            powerUp.remove();
+            powerUps.splice(index, 1);
+            return;
+        }
+        powerUp.style.top = top + "px";
+        
+        if (detectarColision(powerUp, true)) {
+            if(powerupSound) { powerupSound.currentTime = 0; powerupSound.play().catch(()=>{}); }
+            powerUp.remove();
+            powerUps.splice(index, 1);
+            puntuacion += 5;
+            puntajeTexto.innerText = `Puntos: ${puntuacion}`;
+            invulnerable = true;
+            invulnerableTime = 180;
+        }
+    });
+    
+    if (frames % 300 === 0) crearPowerUp();
+    if (puntuacion >= 200) victoria();
 }
 
 function actualizarVidas() {
@@ -208,71 +216,107 @@ function configurarControles() {
     const btnIzquierda = document.getElementById("btnIzquierda");
     const btnDerecha = document.getElementById("btnDerecha");
     
-    const startMove = (e, direccion, btn) => {
-        e.preventDefault();
-        if (direccion === 'izq') moviendoIzquierda = true;
-        else moviendoDerecha = true;
+    const pressButton = (e, direccion, btn) => {
+        e.preventDefault(); 
+        if (direccion === 'izq') {
+            moviendoIzquierda = true;
+            moviendoDerecha = false;
+        } else {
+            moviendoDerecha = true;
+            moviendoIzquierda = false;
+        }
         btn.classList.add('pressed');
     };
     
-    const stopMove = (e, direccion, btn) => {
+    const releaseButton = (e, direccion, btn) => {
         e.preventDefault();
         if (direccion === 'izq') moviendoIzquierda = false;
-        else moviendoDerecha = false;
+        if (direccion === 'der') moviendoDerecha = false;
         btn.classList.remove('pressed');
     };
     
-    // Touch events
-    btnIzquierda.addEventListener("touchstart", (e) => startMove(e, 'izq', btnIzquierda), {passive: false});
-    btnIzquierda.addEventListener("touchend", (e) => stopMove(e, 'izq', btnIzquierda), {passive: false});
-    btnDerecha.addEventListener("touchstart", (e) => startMove(e, 'der', btnDerecha), {passive: false});
-    btnDerecha.addEventListener("touchend", (e) => stopMove(e, 'der', btnDerecha), {passive: false});
-    
-    // Mouse events
-    btnIzquierda.addEventListener("mousedown", (e) => startMove(e, 'izq', btnIzquierda));
-    btnIzquierda.addEventListener("mouseup", (e) => stopMove(e, 'izq', btnIzquierda));
-    btnDerecha.addEventListener("mousedown", (e) => startMove(e, 'der', btnDerecha));
-    btnDerecha.addEventListener("mouseup", (e) => stopMove(e, 'der', btnDerecha));
-    
-    // Cancel events
-    btnIzquierda.addEventListener("touchcancel", () => {
-        moviendoIzquierda = false;
-        btnIzquierda.classList.remove('pressed');
-    });
-    btnDerecha.addEventListener("touchcancel", () => {
-        moviendoDerecha = false;
-        btnDerecha.classList.remove('pressed');
-    });
-    
-    // Keyboard support
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowLeft') {
-            moviendoIzquierda = true;
-            btnIzquierda.classList.add('pressed');
-        }
-        if (e.key === 'ArrowRight') {
-            moviendoDerecha = true;
-            btnDerecha.classList.add('pressed');
-        }
-    });
-    
-    document.addEventListener('keyup', (e) => {
-        if (e.key === 'ArrowLeft') {
-            moviendoIzquierda = false;
-            btnIzquierda.classList.remove('pressed');
-        }
-        if (e.key === 'ArrowRight') {
-            moviendoDerecha = false;
-            btnDerecha.classList.remove('pressed');
-        }
-    });
+    btnIzquierda.addEventListener("pointerdown", (e) => pressButton(e, 'izq', btnIzquierda));
+    btnDerecha.addEventListener("pointerdown", (e) => pressButton(e, 'der', btnDerecha));
+    btnIzquierda.addEventListener("pointerup", (e) => releaseButton(e, 'izq', btnIzquierda));
+    btnDerecha.addEventListener("pointerup", (e) => releaseButton(e, 'der', btnDerecha));
+    btnIzquierda.addEventListener("pointerleave", (e) => releaseButton(e, 'izq', btnIzquierda));
+    btnDerecha.addEventListener("pointerleave", (e) => releaseButton(e, 'der', btnDerecha));
+    btnIzquierda.addEventListener("pointercancel", (e) => releaseButton(e, 'izq', btnIzquierda));
+    btnDerecha.addEventListener("pointercancel", (e) => releaseButton(e, 'der', btnDerecha));
+    btnIzquierda.addEventListener("contextmenu", (e) => e.preventDefault());
+    btnDerecha.addEventListener("contextmenu", (e) => e.preventDefault());
 }
+
+// --- NUEVAS FUNCIONES DE PAUSA ---
+function pausarJuego() {
+    if (!jugando || enPausa) return;
+    enPausa = true;
+    pantallaPausa.style.display = "flex";
+    btnPausa.style.display = "none";
+    if(gameAudio) gameAudio.pause();
+}
+
+function reanudarJuego() {
+    enPausa = false;
+    pantallaPausa.style.display = "none";
+    btnPausa.style.display = "flex";
+    if(gameAudio) gameAudio.play().catch(()=>{});
+}
+
+function salirAlMenu(e) {
+    if(e) e.preventDefault(); 
+
+    enPausa = false;
+    jugando = false;
+    cancelAnimationFrame(animacionId);
+    pantallaPausa.style.display = "none";
+    btnPausa.style.display = "none";
+    
+    if(gameAudio) {
+        gameAudio.pause();
+        gameAudio.currentTime = 0;
+    }
+
+    // --- LA SOLUCIÓN: RESETEAR TODAS LAS VARIABLES ---
+    puntuacion = 0;
+    nivel = 1;
+    vidas = 3;
+    velocidadActual = velocidadBase;
+    invulnerable = false;
+    
+    // Actualizar los textos y corazones en la pantalla
+    puntajeTexto.innerText = "Puntos: 0";
+    nivelTexto.innerText = "Nivel: 1";
+    actualizarVidas();
+    // ------------------------------------------------
+
+    auto.style.opacity = "1";
+    obstaculos.forEach(obs => obs.remove());
+    powerUps.forEach(pu => pu.remove());
+    obstaculos = [];
+    powerUps = [];
+
+    document.getElementById('highScoreDisplay').innerText = `Mejor puntuación: ${highScore}`;
+    
+    // Esperamos un momento para evitar el "clic fantasma"
+    setTimeout(() => {
+        startScreen.style.display = 'flex';
+    }, 300);
+}
+
+
+// Eventos de los botones de pausa
+btnPausa.addEventListener('pointerdown', pausarJuego);
+btnReanudar.addEventListener('pointerdown', reanudarJuego);
+btnSalirMenu.addEventListener('pointerdown', (e) => salirAlMenu(e));
+
+// ----------------------------------
 
 function finDelJuego() {
     jugando = false;
-    collisionSound.play().catch(() => {});
+    btnPausa.style.display = "none"; // Ocultar pausa al perder
+    if(collisionSound) collisionSound.play().catch(()=>{});
     
-    // Actualizar highscore
     if (puntuacion > highScore) {
         highScore = puntuacion;
         localStorage.setItem('carrerasHighScore', highScore);
@@ -283,28 +327,24 @@ function finDelJuego() {
     
     finalScore.innerText = `Puntuación: ${puntuacion} | Nivel: ${nivel}`;
     pantallaPerdiste.style.display = "flex";
-    gameAudio.pause();
-    gameAudio.currentTime = 0;
+    if(gameAudio) gameAudio.pause();
 }
 
 function victoria() {
     jugando = false;
+    btnPausa.style.display = "none"; // Ocultar pausa al ganar
     finalScoreWin.innerText = `¡Llegaste a ${puntuacion} puntos!`;
     pantallaGanaste.style.display = "flex";
-    gameAudio.pause();
-    gameAudio.currentTime = 0;
+    if(gameAudio) gameAudio.pause();
 }
 
 function reiniciarJuego() {
     cancelAnimationFrame(animacionId);
-    animacionId = null;
-    
     jugando = false;
     pantallaPerdiste.style.display = "none";
     pantallaGanaste.style.display = "none";
     
-    // Resetear variables
-    autoPos = 138;
+    autoPos = (screenWidth / 2) - (autoWidth / 2);
     auto.style.left = autoPos + "px";
     auto.style.transform = "rotate(0deg)";
     auto.style.opacity = "1";
@@ -313,45 +353,41 @@ function reiniciarJuego() {
     vidas = 3;
     velocidadActual = velocidadBase;
     invulnerable = false;
-    invulnerableTime = 0;
-    frames = 0;
     
     puntajeTexto.innerText = "Puntos: 0";
     nivelTexto.innerText = "Nivel: 1";
     actualizarVidas();
     
-    // Limpiar elementos
     obstaculos.forEach(obs => obs.remove());
     powerUps.forEach(pu => pu.remove());
     obstaculos = [];
     powerUps = [];
     
-    // Mostrar pantalla de inicio
     document.getElementById('highScoreDisplay').innerText = `Mejor puntuación: ${highScore}`;
-    startScreen.style.display = 'flex';
+    iniciarJuego(); // Al darle "Jugar de nuevo" arranca directo
 }
 
 function iniciarJuego() {
     startScreen.style.display = 'none';
+    btnPausa.style.display = "flex"; // Muestra el botón de pausa al iniciar
     jugando = true;
+    enPausa = false;
     
+    screenWidth = window.innerWidth;
+    screenHeight = window.innerHeight;
+    autoPos = (screenWidth / 2) - (autoWidth / 2);
+    auto.style.left = autoPos + "px";
+
     crearObstaculos();
     configurarControles();
     
-    // Forzar la carga y reproducción del audio
-    gameAudio.load();
-    gameAudio.volume = 0.5;
-    gameAudio.play()
-        .then(() => console.log("✅ Audio reproduciéndose"))
-        .catch(e => console.error("❌ Error al reproducir:", e));
+    if(gameAudio) {
+        gameAudio.currentTime = 0;
+        gameAudio.volume = 0.5;
+        gameAudio.play().catch(() => {});
+    }
     
     gameLoop();
 }
 
-// Inicialización
 document.getElementById('startButton').addEventListener('click', iniciarJuego);
-
-// Prevenir zoom en móviles
-document.addEventListener('touchmove', function(e) {
-    e.preventDefault();
-}, { passive: false });
