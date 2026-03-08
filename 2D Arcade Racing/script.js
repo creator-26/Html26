@@ -245,6 +245,30 @@ function configurarControles() {
     btnDerecha.addEventListener("pointercancel", (e) => releaseButton(e, 'der', btnDerecha));
     btnIzquierda.addEventListener("contextmenu", (e) => e.preventDefault());
     btnDerecha.addEventListener("contextmenu", (e) => e.preventDefault());
+
+    // --- CONTROLES PARA PC (Teclado) ---
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') {
+            moviendoIzquierda = true;
+            btnIzquierda.classList.add('pressed');
+        }
+        if (e.key === 'ArrowRight') {
+            moviendoDerecha = true;
+            btnDerecha.classList.add('pressed');
+        }
+    });
+    
+    document.addEventListener('keyup', (e) => {
+        if (e.key === 'ArrowLeft') {
+            moviendoIzquierda = false;
+            btnIzquierda.classList.remove('pressed');
+        }
+        if (e.key === 'ArrowRight') {
+            moviendoDerecha = false;
+            btnDerecha.classList.remove('pressed');
+        }
+    });
+
 }
 
 // --- NUEVAS FUNCIONES DE PAUSA ---
