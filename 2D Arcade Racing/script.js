@@ -2,6 +2,113 @@
 let highScore = localStorage.getItem('carrerasHighScore') || 0;
 document.getElementById('highScoreDisplay').innerText = `Mejor puntuación: ${highScore}`;
 
+// --- SISTEMA DE VEHÍCULOS ---
+const vehiculos = [
+    { id: 1, nombre: 'Rojo Clásico', archivo: 'autos/auto1.png', desbloqueado: true, nivelRequerido: 0 },
+    { id: 2, nombre: 'Azul Velocista', archivo: 'autos/auto2.png', desbloqueado: true, nivelRequerido: 0 },
+    { id: 3, nombre: 'Camión Monstruo', archivo: 'autos/auto3.png', desbloqueado: false, nivelRequerido: 4 },
+    { id: 4, nombre: 'Super Camión', archivo: 'autos/auto4.png', desbloqueado: false, nivelRequerido: 5 },
+    { id: 5, nombre: 'Shadow Tank', archivo: 'autos/auto5.png', desbloqueado: false, nivelRequerido: 6 }
+];
+// Cargar desbloqueos guardados
+let desbloqueosGuardados = JSON.parse(localStorage.getItem('vehiculosDesbloqueados')) || [];
+// Aplicar el estado guardado al array de vehículos
+vehiculos.forEach(v => {
+    if (desbloqueosGuardados.includes(v.id)) {
+        v.desbloqueado = true;
+    }
+});
+
+let vehiculoSeleccionado = parseInt(localStorage.getItem('vehiculoSeleccionado')) || 1;
+
+function aplicarVehiculoSeleccionado() {
+    const vehiculo = vehiculos.find(v => v.id === vehiculoSeleccionado);
+    if (vehiculo) {
+        auto.style.backgroundImage = `url('${vehiculo.archivo}')`;
+    }
+}
+
+function actualizarGaraje() {
+    const cards = document.querySelectorAll('.vehiculo-card');
+    cards.forEach(card => {
+        const id = parseInt(card.getAttribute('data-vehiculo'));
+        const vehiculo = vehiculos.find(v => v.id === id);
+        if (!vehiculo) return;
+
+        card.classList.remove('seleccionado', 'bloqueado');
+        const estadoDiv = card.querySelector('.vehiculo-estado');
+
+        if (!vehiculo.desbloqueado) {
+            card.classList.add('bloqueado');
+            estadoDiv.innerHTML = `<span class="estado-bloqueado">🔒 BLOQUEADO - Nivel ${vehiculo.nivelRequerido}</span>`;
+        } else if (id === vehiculoSeleccionado) {
+            card.classList.add('seleccionado');
+            estadoDiv.innerHTML = `
+                        <span class="estado-seleccionado">✓ Seleccionado</span>
+                        <span class="estado-actual">Clásico (Actual)</span>
+                    `;
+        } else {
+            estadoDiv.innerHTML = `
+                        <button class="btn-seleccionar" data-vehiculo="${id}">SELECCIONAR</button>
+                    `;
+        }
+    });
+
+    document.querySelectorAll('.btn-seleccionar').forEach(btn => {
+        btn.addEventListener('pointerdown', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            const id = parseInt(btn.getAttribute('data-vehiculo'));
+            seleccionarVehiculo(id);
+        });
+    });
+}
+
+function seleccionarVehiculo(id) {
+    const vehiculo = vehiculos.find(v => v.id === id);
+    if (!vehiculo || !vehiculo.desbloqueado) return;
+    vehiculoSeleccionado = id;
+    localStorage.setItem('vehiculoSeleccionado', id);
+    aplicarVehiculoSeleccionado();
+    actualizarGaraje();
+}
+
+function verificarDesbloqueos() {
+    let huboCambio = false;
+    vehiculos.forEach(v => {
+        if (!v.desbloqueado && nivel >= v.nivelRequerido) {
+            v.desbloqueado = true;
+            huboCambio = true;
+        }
+    });
+    if (huboCambio) {
+        // Guardar en localStorage la lista de IDs desbloqueados
+        const idsDesbloqueados = vehiculos
+            .filter(v => v.desbloqueado)
+            .map(v => v.id);
+        localStorage.setItem('vehiculosDesbloqueados', JSON.stringify(idsDesbloqueados));
+        actualizarGaraje();
+    }
+}
+
+// --- GARAJE UI ---
+const pantallaGaraje = document.getElementById('pantallaGaraje');
+const btnElegirVehiculo = document.getElementById('btnElegirVehiculo');
+const btnCerrarGaraje = document.getElementById('btnCerrarGaraje');
+
+btnElegirVehiculo.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    actualizarGaraje();
+    pantallaGaraje.style.display = 'flex';
+});
+
+btnCerrarGaraje.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    pantallaGaraje.style.display = 'none';
+});
+
+// --- FIN SISTEMA DE VEHÍCULOS ---
+
 // Elementos
 const auto = document.getElementById("auto");
 const gameContainer = document.querySelector(".game-container");
@@ -14,23 +121,19 @@ const startScreen = document.getElementById("startScreen");
 const finalScore = document.getElementById("finalScore");
 const finalScoreWin = document.getElementById("finalScoreWin");
 
-// NUEVOS Elementos de Pausa
 const btnPausa = document.getElementById("btnPausa");
 const pantallaPausa = document.getElementById("pantallaPausa");
 const btnReanudar = document.getElementById("btnReanudar");
 const btnSalirMenu = document.getElementById("btnSalirMenu");
 
-// Audios
 const gameAudio = document.getElementById('gameAudio');
 const collisionSound = document.getElementById('collisionSound');
 const powerupSound = document.getElementById('powerupSound');
 
-// Dimensiones dinámicas de la pantalla
 let screenWidth = window.innerWidth;
 let screenHeight = window.innerHeight;
-let autoWidth = 60; 
+let autoWidth = 60;
 
-// Variables del juego
 let autoPos = (screenWidth / 2) - (autoWidth / 2);
 let velocidadBase = 4;
 let velocidadActual = 4;
@@ -38,7 +141,7 @@ let puntuacion = 0;
 let nivel = 1;
 let vidas = 3;
 let jugando = false;
-let enPausa = false; // NUEVA VARIABLE PARA LA PAUSA
+let enPausa = false;
 let moviendoIzquierda = false;
 let moviendoDerecha = false;
 let obstaculos = [];
@@ -48,7 +151,9 @@ let animacionId = null;
 let invulnerable = false;
 let invulnerableTime = 0;
 
-// Actualizar dimensiones si se gira el móvil
+// Aplicar vehículo guardado al cargar
+aplicarVehiculoSeleccionado();
+
 window.addEventListener('resize', () => {
     screenWidth = window.innerWidth;
     screenHeight = window.innerHeight;
@@ -92,12 +197,12 @@ function crearPowerUp() {
 }
 
 function moverAuto() {
-    if (!jugando || enPausa) return; // Si está en pausa, no se mueve
-    const velocidad = screenWidth * 0.02; 
+    if (!jugando || enPausa) return;
+    const velocidad = screenWidth * 0.02;
     const margen = 5;
     const limiteIzq = margen;
     const limiteDer = screenWidth - autoWidth - margen;
-    
+
     if (moviendoIzquierda && autoPos > limiteIzq) {
         autoPos -= velocidad;
         auto.style.transform = "rotate(-8deg)";
@@ -116,29 +221,29 @@ function actualizarNivel() {
     nivel = Math.floor(puntuacion / 20) + 1;
     nivelTexto.innerText = `Nivel: ${nivel}`;
     velocidadActual = velocidadBase + (nivel * 0.5);
+    verificarDesbloqueos();
 }
 
 function detectarColision(elemento, esPowerUp = false) {
     const autoRect = auto.getBoundingClientRect();
     const elementRect = elemento.getBoundingClientRect();
-    const margen = esPowerUp ? 10 : 15; 
-    
+    const margen = esPowerUp ? 10 : 15;
+
     return autoRect.left < elementRect.right - margen &&
-           autoRect.right > elementRect.left + margen &&
-           autoRect.top < elementRect.bottom - margen &&
-           autoRect.bottom > elementRect.top + margen;
+        autoRect.right > elementRect.left + margen &&
+        autoRect.top < elementRect.bottom - margen &&
+        autoRect.bottom > elementRect.top + margen;
 }
 
 function gameLoop() {
     if (!jugando) return;
     animacionId = requestAnimationFrame(gameLoop);
-    
-    // NUEVO: ¡Magia de la pausa! Si está en pausa, congela todo aquí y no ejecuta lo de abajo
-    if (enPausa) return; 
-    
+
+    if (enPausa) return;
+
     frames++;
     moverAuto();
-    
+
     if (invulnerable) {
         invulnerableTime--;
         auto.style.opacity = invulnerableTime % 10 < 5 ? '0.5' : '1';
@@ -147,11 +252,11 @@ function gameLoop() {
             auto.style.opacity = '1';
         }
     }
-    
+
     obstaculos.forEach(obs => {
         let top = parseFloat(obs.style.top) || 0;
         top += velocidadActual;
-        
+
         if (top >= screenHeight) {
             top = -100;
             obs.style.left = Math.random() * (screenWidth - 60) + "px";
@@ -160,15 +265,21 @@ function gameLoop() {
             actualizarNivel();
         }
         obs.style.top = top + "px";
-        
+
         if (!invulnerable && detectarColision(obs)) {
-            if(collisionSound) { collisionSound.currentTime = 0; collisionSound.play().catch(()=>{}); }
+            if (collisionSound) { collisionSound.currentTime = 0;
+                collisionSound.play().catch(() => {}); }
+
+            if ("vibrate" in navigator) {
+                navigator.vibrate(300);
+            }
+
             const autoRect = auto.getBoundingClientRect();
             crearExplosion(autoRect.left, autoRect.top);
-            
+
             vidas--;
             actualizarVidas();
-            
+
             if (vidas <= 0) {
                 finDelJuego();
             } else {
@@ -176,21 +287,23 @@ function gameLoop() {
                 invulnerableTime = 120;
             }
         }
+
     });
-    
+
     powerUps.forEach((powerUp, index) => {
         let top = parseFloat(powerUp.style.top) || 0;
         top += velocidadActual;
-        
+
         if (top >= screenHeight) {
             powerUp.remove();
             powerUps.splice(index, 1);
             return;
         }
         powerUp.style.top = top + "px";
-        
+
         if (detectarColision(powerUp, true)) {
-            if(powerupSound) { powerupSound.currentTime = 0; powerupSound.play().catch(()=>{}); }
+            if (powerupSound) { powerupSound.currentTime = 0;
+                powerupSound.play().catch(() => {}); }
             powerUp.remove();
             powerUps.splice(index, 1);
             puntuacion += 5;
@@ -199,7 +312,7 @@ function gameLoop() {
             invulnerableTime = 180;
         }
     });
-    
+
     if (frames % 300 === 0) crearPowerUp();
     if (puntuacion >= 200) victoria();
 }
@@ -216,103 +329,111 @@ function configurarControles() {
     const btnIzquierda = document.getElementById("btnIzquierda");
     const btnDerecha = document.getElementById("btnDerecha");
     
-    const pressButton = (e, direccion, btn) => {
-        e.preventDefault(); 
-        if (direccion === 'izq') {
-            moviendoIzquierda = true;
-            moviendoDerecha = false;
-        } else {
-            moviendoDerecha = true;
-            moviendoIzquierda = false;
-        }
-        btn.classList.add('pressed');
-    };
+    // Elimina listeners previos para evitar duplicados al reiniciar
+    const nuevosBtnIzq = btnIzquierda.cloneNode(true);
+    const nuevosBtnDer = btnDerecha.cloneNode(true);
+    btnIzquierda.parentNode.replaceChild(nuevosBtnIzq, btnIzquierda);
+    btnDerecha.parentNode.replaceChild(nuevosBtnDer, btnDerecha);
     
-    const releaseButton = (e, direccion, btn) => {
+    // Referencias actualizadas
+    const btnIzq = document.getElementById("btnIzquierda");
+    const btnDer = document.getElementById("btnDerecha");
+    
+    const pressIzq = (e) => {
         e.preventDefault();
-        if (direccion === 'izq') moviendoIzquierda = false;
-        if (direccion === 'der') moviendoDerecha = false;
-        btn.classList.remove('pressed');
+        moviendoIzquierda = true;
+        moviendoDerecha = false;
+        btnIzq.classList.add('pressed');
+        // Vibración ligera al presionar (opcional)
+        if (navigator.vibrate) navigator.vibrate(10);
     };
     
-    btnIzquierda.addEventListener("pointerdown", (e) => pressButton(e, 'izq', btnIzquierda));
-    btnDerecha.addEventListener("pointerdown", (e) => pressButton(e, 'der', btnDerecha));
-    btnIzquierda.addEventListener("pointerup", (e) => releaseButton(e, 'izq', btnIzquierda));
-    btnDerecha.addEventListener("pointerup", (e) => releaseButton(e, 'der', btnDerecha));
-    btnIzquierda.addEventListener("pointerleave", (e) => releaseButton(e, 'izq', btnIzquierda));
-    btnDerecha.addEventListener("pointerleave", (e) => releaseButton(e, 'der', btnDerecha));
-    btnIzquierda.addEventListener("pointercancel", (e) => releaseButton(e, 'izq', btnIzquierda));
-    btnDerecha.addEventListener("pointercancel", (e) => releaseButton(e, 'der', btnDerecha));
-    btnIzquierda.addEventListener("contextmenu", (e) => e.preventDefault());
-    btnDerecha.addEventListener("contextmenu", (e) => e.preventDefault());
-
-    // --- CONTROLES PARA PC (Teclado) ---
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowLeft') {
-            moviendoIzquierda = true;
-            btnIzquierda.classList.add('pressed');
-        }
-        if (e.key === 'ArrowRight') {
-            moviendoDerecha = true;
-            btnDerecha.classList.add('pressed');
-        }
+    const pressDer = (e) => {
+        e.preventDefault();
+        moviendoDerecha = true;
+        moviendoIzquierda = false;
+        btnDer.classList.add('pressed');
+        if (navigator.vibrate) navigator.vibrate(10);
+    };
+    
+    const releaseIzq = (e) => {
+        e.preventDefault();
+        moviendoIzquierda = false;
+        btnIzq.classList.remove('pressed');
+    };
+    
+    const releaseDer = (e) => {
+        e.preventDefault();
+        moviendoDerecha = false;
+        btnDer.classList.remove('pressed');
+    };
+    
+    // Listeners táctiles y de mouse
+    btnIzq.addEventListener('pointerdown', pressIzq);
+    btnDer.addEventListener('pointerdown', pressDer);
+    
+    // Se liberan al levantar el dedo EN CUALQUIER LUGAR de la pantalla
+    // Esto evita que el movimiento se detenga si el dedo se sale del botón
+    document.addEventListener('pointerup', (e) => {
+        if (moviendoIzquierda) releaseIzq(e);
+        if (moviendoDerecha) releaseDer(e);
     });
     
-    document.addEventListener('keyup', (e) => {
-        if (e.key === 'ArrowLeft') {
-            moviendoIzquierda = false;
-            btnIzquierda.classList.remove('pressed');
-        }
-        if (e.key === 'ArrowRight') {
-            moviendoDerecha = false;
-            btnDerecha.classList.remove('pressed');
-        }
+    // También liberamos si se cancela el puntero (ej. gesto del sistema)
+    document.addEventListener('pointercancel', (e) => {
+        moviendoIzquierda = false;
+        moviendoDerecha = false;
+        btnIzq.classList.remove('pressed');
+        btnDer.classList.remove('pressed');
     });
-
+    
+    // Prevenir menú contextual en los botones
+    btnIzq.addEventListener('contextmenu', (e) => e.preventDefault());
+    btnDer.addEventListener('contextmenu', (e) => e.preventDefault());
+    
+    // Evitar scroll accidental al tocar los botones
+    btnIzq.style.touchAction = 'none';
+    btnDer.style.touchAction = 'none';
 }
 
-// --- NUEVAS FUNCIONES DE PAUSA ---
 function pausarJuego() {
     if (!jugando || enPausa) return;
     enPausa = true;
     pantallaPausa.style.display = "flex";
     btnPausa.style.display = "none";
-    if(gameAudio) gameAudio.pause();
+    if (gameAudio) gameAudio.pause();
 }
 
 function reanudarJuego() {
     enPausa = false;
     pantallaPausa.style.display = "none";
     btnPausa.style.display = "flex";
-    if(gameAudio) gameAudio.play().catch(()=>{});
+    if (gameAudio) gameAudio.play().catch(() => {});
 }
 
 function salirAlMenu(e) {
-    if(e) e.preventDefault(); 
+    if (e) e.preventDefault();
 
     enPausa = false;
     jugando = false;
     cancelAnimationFrame(animacionId);
     pantallaPausa.style.display = "none";
     btnPausa.style.display = "none";
-    
-    if(gameAudio) {
+
+    if (gameAudio) {
         gameAudio.pause();
         gameAudio.currentTime = 0;
     }
 
-    // --- LA SOLUCIÓN: RESETEAR TODAS LAS VARIABLES ---
     puntuacion = 0;
     nivel = 1;
     vidas = 3;
     velocidadActual = velocidadBase;
     invulnerable = false;
-    
-    // Actualizar los textos y corazones en la pantalla
+
     puntajeTexto.innerText = "Puntos: 0";
     nivelTexto.innerText = "Nivel: 1";
     actualizarVidas();
-    // ------------------------------------------------
 
     auto.style.opacity = "1";
     obstaculos.forEach(obs => obs.remove());
@@ -321,26 +442,21 @@ function salirAlMenu(e) {
     powerUps = [];
 
     document.getElementById('highScoreDisplay').innerText = `Mejor puntuación: ${highScore}`;
-    
-    // Esperamos un momento para evitar el "clic fantasma"
+
     setTimeout(() => {
         startScreen.style.display = 'flex';
     }, 300);
 }
 
-
-// Eventos de los botones de pausa
 btnPausa.addEventListener('pointerdown', pausarJuego);
 btnReanudar.addEventListener('pointerdown', reanudarJuego);
 btnSalirMenu.addEventListener('pointerdown', (e) => salirAlMenu(e));
 
-// ----------------------------------
-
 function finDelJuego() {
     jugando = false;
-    btnPausa.style.display = "none"; // Ocultar pausa al perder
-    if(collisionSound) collisionSound.play().catch(()=>{});
-    
+    btnPausa.style.display = "none";
+    if (collisionSound) collisionSound.play().catch(() => {});
+
     if (puntuacion > highScore) {
         highScore = puntuacion;
         localStorage.setItem('carrerasHighScore', highScore);
@@ -348,18 +464,18 @@ function finDelJuego() {
     } else {
         document.getElementById('newRecord').style.display = 'none';
     }
-    
+
     finalScore.innerText = `Puntuación: ${puntuacion} | Nivel: ${nivel}`;
     pantallaPerdiste.style.display = "flex";
-    if(gameAudio) gameAudio.pause();
+    if (gameAudio) gameAudio.pause();
 }
 
 function victoria() {
     jugando = false;
-    btnPausa.style.display = "none"; // Ocultar pausa al ganar
+    btnPausa.style.display = "none";
     finalScoreWin.innerText = `¡Llegaste a ${puntuacion} puntos!`;
     pantallaGanaste.style.display = "flex";
-    if(gameAudio) gameAudio.pause();
+    if (gameAudio) gameAudio.pause();
 }
 
 function reiniciarJuego() {
@@ -367,7 +483,7 @@ function reiniciarJuego() {
     jugando = false;
     pantallaPerdiste.style.display = "none";
     pantallaGanaste.style.display = "none";
-    
+
     autoPos = (screenWidth / 2) - (autoWidth / 2);
     auto.style.left = autoPos + "px";
     auto.style.transform = "rotate(0deg)";
@@ -377,40 +493,41 @@ function reiniciarJuego() {
     vidas = 3;
     velocidadActual = velocidadBase;
     invulnerable = false;
-    
+
     puntajeTexto.innerText = "Puntos: 0";
     nivelTexto.innerText = "Nivel: 1";
     actualizarVidas();
-    
+
     obstaculos.forEach(obs => obs.remove());
     powerUps.forEach(pu => pu.remove());
     obstaculos = [];
     powerUps = [];
-    
+
     document.getElementById('highScoreDisplay').innerText = `Mejor puntuación: ${highScore}`;
-    iniciarJuego(); // Al darle "Jugar de nuevo" arranca directo
+    iniciarJuego();
 }
 
 function iniciarJuego() {
     startScreen.style.display = 'none';
-    btnPausa.style.display = "flex"; // Muestra el botón de pausa al iniciar
+    btnPausa.style.display = "flex";
     jugando = true;
     enPausa = false;
-    
+
     screenWidth = window.innerWidth;
     screenHeight = window.innerHeight;
     autoPos = (screenWidth / 2) - (autoWidth / 2);
     auto.style.left = autoPos + "px";
 
+    aplicarVehiculoSeleccionado();
     crearObstaculos();
     configurarControles();
-    
-    if(gameAudio) {
+
+    if (gameAudio) {
         gameAudio.currentTime = 0;
         gameAudio.volume = 0.5;
         gameAudio.play().catch(() => {});
     }
-    
+
     gameLoop();
 }
 
