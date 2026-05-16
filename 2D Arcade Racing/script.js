@@ -413,6 +413,7 @@ function reanudarJuego() {
 
 function salirAlMenu(e) {
     if (e) e.preventDefault();
+     removerControlesTeclado();
 
     enPausa = false;
     jugando = false;
@@ -453,6 +454,7 @@ btnReanudar.addEventListener('pointerdown', reanudarJuego);
 btnSalirMenu.addEventListener('pointerdown', (e) => salirAlMenu(e));
 
 function finDelJuego() {
+    removerControlesTeclado();
     jugando = false;
     btnPausa.style.display = "none";
     if (collisionSound) collisionSound.play().catch(() => {});
@@ -471,6 +473,7 @@ function finDelJuego() {
 }
 
 function victoria() {
+    removerControlesTeclado();
     jugando = false;
     btnPausa.style.display = "none";
     finalScoreWin.innerText = `¡Llegaste a ${puntuacion} puntos!`;
@@ -479,6 +482,7 @@ function victoria() {
 }
 
 function reiniciarJuego() {
+    removerControlesTeclado();
     cancelAnimationFrame(animacionId);
     jugando = false;
     pantallaPerdiste.style.display = "none";
@@ -507,6 +511,44 @@ function reiniciarJuego() {
     iniciarJuego();
 }
 
+// --- CONTROLES DE TECLADO (PC) ---
+function manejarKeyDown(e) {
+    // Solo si el juego está activo y no en pausa
+    if (!jugando || enPausa) return;
+
+    if (e.key === 'ArrowLeft' || e.key === 'Left' || e.key === 'a' || e.key === 'A') {
+        e.preventDefault(); // evitar scroll horizontal
+        moviendoIzquierda = true;
+        moviendoDerecha = false;
+    }
+    if (e.key === 'ArrowRight' || e.key === 'Right' || e.key === 'd' || e.key === 'D') {
+        e.preventDefault();
+        moviendoDerecha = true;
+        moviendoIzquierda = false;
+    }
+}
+
+function manejarKeyUp(e) {
+    if (e.key === 'ArrowLeft' || e.key === 'Left' || e.key === 'a' || e.key === 'A') {
+        e.preventDefault();
+        moviendoIzquierda = false;
+    }
+    if (e.key === 'ArrowRight' || e.key === 'Right' || e.key === 'd' || e.key === 'D') {
+        e.preventDefault();
+        moviendoDerecha = false;
+    }
+}
+
+function agregarControlesTeclado() {
+    document.addEventListener('keydown', manejarKeyDown);
+    document.addEventListener('keyup', manejarKeyUp);
+}
+
+function removerControlesTeclado() {
+    document.removeEventListener('keydown', manejarKeyDown);
+    document.removeEventListener('keyup', manejarKeyUp);
+}
+
 function iniciarJuego() {
     startScreen.style.display = 'none';
     btnPausa.style.display = "flex";
@@ -521,6 +563,7 @@ function iniciarJuego() {
     aplicarVehiculoSeleccionado();
     crearObstaculos();
     configurarControles();
+    agregarControlesTeclado();
 
     if (gameAudio) {
         gameAudio.currentTime = 0;
