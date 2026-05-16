@@ -16,11 +16,83 @@
             <div class="game-title">🏁 CARRERAS PRO 🏁</div>
             <div class="high-score" id="highScoreDisplay">Mejor puntuación: 0</div>
             <button id="startButton">▶ Iniciar Juego</button>
+            <button id="btnElegirVehiculo">🚗 Elegir Vehículo</button>
         </div>
 
-                <div class="pista"></div>
-        
-        <button id="btnPausa" style="display: none;">⏸</button>
+        <!-- PANTALLA DE GARAJE -->
+        <div id="pantallaGaraje">
+            <div class="garaje-contenedor">
+                <div class="garaje-titulo">🚙 GARAJE</div>
+                <div class="garaje-grid" id="garajeGrid">
+                    <!-- Vehículo 1: Rojo Clásico -->
+                    <div class="vehiculo-card seleccionado" data-vehiculo="1">
+                        <div class="vehiculo-img">
+                            <img src="autos/auto1.png" alt="Rojo Clásico">
+                        </div>
+                        <div class="vehiculo-nombre">Rojo Clásico</div>
+                        <div class="vehiculo-estado">
+                            <span class="estado-seleccionado">✓ Seleccionado</span>
+                            <span class="estado-actual">Clásico (Actual)</span>
+                        </div>
+                    </div>
+                    <!-- Vehículo 2: Azul Velocista -->
+                    <div class="vehiculo-card" data-vehiculo="2">
+                        <div class="vehiculo-img">
+                            <img src="autos/auto2.png" alt="Azul Velocista">
+                        </div>
+                        <div class="vehiculo-nombre">Azul Velocista</div>
+                        <div class="vehiculo-estado">
+                            <button class="btn-seleccionar">SELECCIONAR</button>
+                        </div>
+                    </div>
+                    <!-- Vehículo 3: Amarillo Clásico (Bloqueado) -->
+                    <div class="vehiculo-card bloqueado" data-vehiculo="3">
+                        <div class="vehiculo-img">
+                            <img src="autos/auto3.png" alt="Amarillo Clásico">
+                        </div>
+                        <div class="vehiculo-nombre">Amarillo Clásico</div>
+                        <div class="vehiculo-estado">
+                            <span class="estado-bloqueado">🔒 BLOQUEADO - Nivel 4</span>
+                        </div>
+                    </div>
+                     <!-- Vehículo 4: Super Camión (Bloqueado) -->
+                    <div class="vehiculo-card bloqueado" data-vehiculo="4">
+                        <div class="vehiculo-img">
+                            <img src="autos/auto4.png" alt="Super Camión">
+                        </div>
+                        <div class="vehiculo-nombre">Super Camión</div>
+                        <div class="vehiculo-estado">
+                            <span class="estado-bloqueado">🔒 BLOQUEADO - Nivel 5</span>
+                        </div>
+                    </div>
+                    <!-- Vehículo 5: Shadow Tank (Bloqueado) -->
+                    <div class="vehiculo-card bloqueado" data-vehiculo="5">
+                        <div class="vehiculo-img">
+                            <img src="autos/auto5.png" alt="Shadow Tank">
+                        </div>
+                        <div class="vehiculo-nombre">Shadow Tank</div>
+                        <div class="vehiculo-estado">
+                            <span class="estado-bloqueado">🔒 BLOQUEADO - Nivel 6</span>
+                        </div>
+                    </div>
+                </div>
+                <button id="btnCerrarGaraje" class="btn-volver">← Volver al Menú</button>
+            </div>
+        </div>
+        <!-- FIN PANTALLA GARAJE -->
+
+        <div class="pista"></div>
+
+       <button id="btnPausa" aria-label="Pausar juego" title="Pausar">
+    <div class="pause-ring"></div>
+    <div class="pause-inner">
+        <!-- SVG de pausa profesional -->
+        <svg class="pause-svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="3" width="4" height="18" rx="1.5" fill="white" stroke="none"/>
+            <rect x="15" y="3" width="4" height="18" rx="1.5" fill="white" stroke="none"/>
+        </svg>
+    </div>
+</button>
 
         <div class="puntaje" id="puntaje">Puntos: 0</div>
         <div class="stats">
@@ -30,23 +102,28 @@
         <div class="auto" id="auto"></div>
 
         <div class="pantalla" id="pantallaPausa">
-            <p style="font-size: 36px; text-shadow: 2px 2px 0px #000;">⏸ PAUSA</p>
+            <p style="font-size: 36px; text-shadow: 2px 2px 0px #000;"> PAUSA</p>
             <button id="btnReanudar">▶ Reanudar</button>
             <button id="btnSalirMenu" style="background: linear-gradient(145deg, #e74c3c, #c0392b); box-shadow: 0 8px 20px rgba(231, 76, 60, 0.5), 0 6px 0 #902b20;">🏠 Salir al Menú</button>
         </div>
 
         <div class="pantalla" id="pantallaPerdiste">
-
             <p>💥 ¡CHOQUE! 💥</p>
             <p id="finalScore"></p>
             <p id="newRecord" style="color: #ffd700; display: none;">¡NUEVO RÉCORD! 🏆</p>
-            <button onclick="reiniciarJuego()">🔄 Jugar de nuevo</button>
+           <button class="btn-reiniciar" onclick="reiniciarJuego()">
+    <i class="fa-solid fa-rotate-right"></i>
+    <span>Jugar de nuevo</span>
+</button>
         </div>
 
         <div class="pantalla" id="pantallaGanaste">
             <p>🏆 ¡VICTORIA! 🏆</p>
             <p id="finalScoreWin"></p>
-            <button onclick="reiniciarJuego()">🔄 Jugar de nuevo</button>
+            <button class="btn-reiniciar" onclick="reiniciarJuego()">
+    <i class="fa-solid fa-rotate-right"></i>
+    <span>Jugar de nuevo</span>
+</button>
         </div>
 
         <div class="controles">
