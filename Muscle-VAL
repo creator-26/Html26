@@ -1,5 +1,5 @@
--- AUTO KILL SUPREMO HORIZONTAL - VERSIÓN ELEGANTE (DARK GREY)
--- Hub horizontal optimizado | Funciones 100% funcionales y seguras
+-- AUTO KILL SUPREMO - VERSIÓN 3 COLUMNAS (DARK GREY & SWITCHES)
+-- Hub 640x320 | 3 Columnas | Interruptores funcionales | Diseño Profesional
 
 -- =====================================================================
 -- 1. SERVICIOS Y VARIABLES GLOBALES
@@ -9,6 +9,7 @@ local HttpService = game:GetService("HttpService")
 local StarterGui = game:GetService("StarterGui")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local VirtualUser = game:GetService("VirtualUser")
 local Camera = workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
 
@@ -22,15 +23,21 @@ local State = {
     AttackConnection = nil,
     SpectateConnection = nil,
     AttackTick = tick(),
+    
+    -- Nuevas variables para los interruptores de la 3ra columna
+    AntiAFK = true,
+    Notificaciones = false,
+    AtaqueRapido = false,
+
     -- Paleta de colores elegante y profesional (Tonos Grises)
     Theme = {
-        Background = Color3.fromRGB(21, 21, 21),
-        Panel = Color3.fromRGB(30, 30, 30),
-        Button = Color3.fromRGB(40, 40, 40),
+        Background = Color3.fromRGB(20, 20, 20),
+        Panel = Color3.fromRGB(28, 28, 28),
+        Button = Color3.fromRGB(38, 38, 38),
         ButtonHover = Color3.fromRGB(50, 50, 50),
         Accent = Color3.fromRGB(160, 160, 160), -- Gris plata
         AccentActive = Color3.fromRGB(200, 200, 200),
-        Danger = Color3.fromRGB(140, 60, 60),
+        Danger = Color3.fromRGB(160, 60, 60),
         Text = Color3.fromRGB(240, 240, 240),
         TextDark = Color3.fromRGB(30, 30, 30)
     }
@@ -49,11 +56,7 @@ local function isAuthorized()
     end)
     
     if success and content then
-        if string.find(string.lower(content), string.lower(myName)) then
-            return true
-        end
-    else
-        warn("No se pudo conectar a la base de datos de seguridad.")
+        if string.find(string.lower(content), string.lower(myName)) then return true end
     end
     return false
 end
@@ -105,7 +108,6 @@ local function equipPunch()
     if not LocalPlayer.Character then return false end
     local char = LocalPlayer.Character
     if char:FindFirstChild("Punch") then return true end
-    
     local backpack = LocalPlayer.Backpack
     local punch = backpack:FindFirstChild("Punch")
     if punch then
@@ -132,12 +134,6 @@ local function getValidTargets()
         end
     end
 
-    for _, player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and isBlacklisted(player) then
-            addTarget(player)
-        end
-    end
-
     if State.AutoKillAll then
         for _, player in pairs(Players:GetPlayers()) do
             if player == LocalPlayer or isWhitelisted(player) then continue end
@@ -160,7 +156,9 @@ local function startAutoKill()
 
     State.AttackConnection = RunService.Heartbeat:Connect(function()
         if not State.AutoKillEnabled or not LocalPlayer.Character then return end
-        if tick() - State.AttackTick < 0.02 then return end
+        
+        local speed = State.AtaqueRapido and 0.01 or 0.03
+        if tick() - State.AttackTick < speed then return end
         State.AttackTick = tick()
 
         equipPunch()
@@ -204,17 +202,30 @@ end
 -- ================== BLACKLIST INDEPENDIENTE ==================
 local BlacklistConnection = nil
 local BlacklistAttackTick = tick()
+local NotifiedPlayers = {}
 
 local function startBlacklistKill()
     if BlacklistConnection then BlacklistConnection:Disconnect() end
     
     BlacklistConnection = RunService.Heartbeat:Connect(function()
         if not LocalPlayer.Character then return end
-        if tick() - BlacklistAttackTick < 0.02 then return end
+        
+        local speed = State.AtaqueRapido and 0.01 or 0.03
+        if tick() - BlacklistAttackTick < speed then return end
         BlacklistAttackTick = tick()
         
         for _, player in pairs(Players:GetPlayers()) do
             if player ~= LocalPlayer and isBlacklisted(player) then
+                
+                if State.Notificaciones and not NotifiedPlayers[player.UserId] then
+                    NotifiedPlayers[player.UserId] = true
+                    StarterGui:SetCore("SendNotification", {
+                        Title = "¡Blacklist Detectada!",
+                        Text = "Atacando a: " .. player.Name,
+                        Duration = 3
+                    })
+                end
+
                 local char = player.Character
                 if char and char:FindFirstChild("HumanoidRootPart") and char.Humanoid.Health > 0 then
                     equipPunch()
@@ -237,10 +248,9 @@ local function startBlacklistKill()
     end)
 end
 
--- ================== SISTEMA DE CÁMARA ==================
+-- ================== SISTEMA DE CÁMARA Y ANTI-AFK ==================
 local function updateSpectate()
     if State.SpectateConnection then State.SpectateConnection:Disconnect() end
-
     State.SpectateConnection = RunService.Heartbeat:Connect(function()
         if State.SpectatingPlayer and State.SpectatingPlayer ~= LocalPlayer then
             if State.SpectatingPlayer.Character then
@@ -253,8 +263,16 @@ local function updateSpectate()
     end)
 end
 
+LocalPlayer.Idled:Connect(function()
+    if State.AntiAFK then
+        VirtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+        task.wait(1)
+        VirtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+    end
+end)
+
 -- =====================================================================
--- 5. INTERFAZ GRÁFICA (UI ELEGANTE MINIMALISTA)
+-- 5. INTERFAZ GRÁFICA (UI ELEGANTE 3 COLUMNAS)
 -- =====================================================================
 if isAuthorized() then
     local screenGui = Instance.new("ScreenGui")
@@ -262,9 +280,10 @@ if isAuthorized() then
     screenGui.ResetOnSpawn = false
     screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
+    -- Marco Principal (Más ancho para 3 columnas)
     local mainFrame = Instance.new("Frame")
-    mainFrame.Size = UDim2.new(0, 480, 0, 310)
-    mainFrame.Position = UDim2.new(0.5, -240, 0.5, -155)
+    mainFrame.Size = UDim2.new(0, 640, 0, 320)
+    mainFrame.Position = UDim2.new(0.5, -320, 0.5, -160)
     mainFrame.BackgroundColor3 = State.Theme.Background
     mainFrame.Active = true
     mainFrame.Visible = false
@@ -275,6 +294,13 @@ if isAuthorized() then
     mainStroke.Transparency = 0.3
     mainStroke.Thickness = 2
     mainStroke.Parent = mainFrame
+
+    local function applyCorners(object, radius)
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, radius)
+        corner.Parent = object
+    end
+    applyCorners(mainFrame, 6)
 
     -- Arrastre Suave
     local dragging, dragInput, dragStart, startPos
@@ -304,19 +330,19 @@ if isAuthorized() then
     titleFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
     titleFrame.BorderSizePixel = 0
     titleFrame.Parent = mainFrame
+    applyCorners(titleFrame, 6)
 
     local title = Instance.new("TextLabel")
     title.Size = UDim2.new(1, -40, 1, 0)
     title.Position = UDim2.new(0, 15, 0, 0)
     title.BackgroundTransparency = 1
-    title.Text = "VAL-26P | Control Panel"
+    title.Text = "VAL-26P | Control Panel | V2"
     title.TextColor3 = State.Theme.Accent
     title.Font = Enum.Font.GothamMedium
     title.TextSize = 12
     title.TextXAlignment = Enum.TextXAlignment.Left
     title.Parent = titleFrame
 
-    -- Botón Cerrar
     local btnClose = Instance.new("TextButton")
     btnClose.Size = UDim2.new(0, 30, 0, 30)
     btnClose.Position = UDim2.new(1, -30, 0, 0)
@@ -328,35 +354,31 @@ if isAuthorized() then
     btnClose.Parent = titleFrame
     btnClose.MouseButton1Click:Connect(function() mainFrame.Visible = false end)
 
-    -- ================== PANELES ==================
-    local leftPanel = Instance.new("Frame")
-    leftPanel.Size = UDim2.new(0, 220, 1, -40)
-    leftPanel.Position = UDim2.new(0, 10, 0, 40)
-    leftPanel.BackgroundTransparency = 1
-    leftPanel.Parent = mainFrame
+    -- ================== CREACIÓN DE LAS 3 COLUMNAS ==================
+    local col1 = Instance.new("Frame")
+    col1.Size = UDim2.new(0, 195, 1, -45)
+    col1.Position = UDim2.new(0, 15, 0, 40)
+    col1.BackgroundTransparency = 1
+    col1.Parent = mainFrame
 
-    local rightPanel = Instance.new("Frame")
-    rightPanel.Size = UDim2.new(0, 230, 1, -40)
-    rightPanel.Position = UDim2.new(0, 240, 0, 40)
-    rightPanel.BackgroundColor3 = State.Theme.Panel
-    rightPanel.Parent = mainFrame
+    local col2 = Instance.new("Frame")
+    col2.Size = UDim2.new(0, 195, 1, -45)
+    col2.Position = UDim2.new(0, 225, 0, 40)
+    col2.BackgroundColor3 = State.Theme.Panel
+    applyCorners(col2, 6)
+    col2.Parent = mainFrame
 
-    -- Funciones Auxiliares UI
-    local function applyCorners(object, radius)
-        local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(0, radius)
-        corner.Parent = object
-    end
-    applyCorners(mainFrame, 6)
-    applyCorners(rightPanel, 6)
+    local col3 = Instance.new("Frame")
+    col3.Size = UDim2.new(0, 195, 1, -45)
+    col3.Position = UDim2.new(0, 430, 0, 40)
+    col3.BackgroundColor3 = State.Theme.Panel
+    applyCorners(col3, 6)
+    col3.Parent = mainFrame
 
-    local controlY = 0
-    local elementHeight = 28
-    local spacing = 34
-
-    local function createButton(text, yPos, bgColor, txtColor)
+    -- Funciones Auxiliares de UI
+    local function createButton(parent, text, yPos, bgColor, txtColor)
         local btn = Instance.new("TextButton")
-        btn.Size = UDim2.new(1, 0, 0, elementHeight)
+        btn.Size = UDim2.new(1, 0, 0, 28)
         btn.Position = UDim2.new(0, 0, 0, yPos)
         btn.BackgroundColor3 = bgColor or State.Theme.Button
         btn.Text = text
@@ -364,13 +386,13 @@ if isAuthorized() then
         btn.TextSize = 11
         btn.Font = Enum.Font.GothamMedium
         applyCorners(btn, 4)
-        btn.Parent = leftPanel
+        btn.Parent = parent
         return btn
     end
 
-    local function createTextBox(placeholder, yPos)
+    local function createTextBox(parent, placeholder, yPos)
         local txt = Instance.new("TextBox")
-        txt.Size = UDim2.new(1, 0, 0, elementHeight)
+        txt.Size = UDim2.new(1, 0, 0, 28)
         txt.Position = UDim2.new(0, 0, 0, yPos)
         txt.PlaceholderText = placeholder
         txt.TextSize = 11
@@ -383,47 +405,120 @@ if isAuthorized() then
         local pad = Instance.new("UIPadding")
         pad.PaddingLeft = UDim.new(0, 10)
         pad.Parent = txt
-        txt.Parent = leftPanel
+        txt.Parent = parent
         return txt
     end
 
-    -- Controles Izquierdos
-    local btnToggle = createButton("Auto Kill: INACTIVO", controlY)
-    controlY = controlY + spacing
-    local btnMode = createButton("Modo: TODOS", controlY, State.Theme.Accent, State.Theme.TextDark)
-    controlY = controlY + spacing
-    local txtTarget = createTextBox("Buscar jugador...", controlY)
-    controlY = controlY + spacing
-    local txtWhitelist = createTextBox("Añadir a Whitelist...", controlY)
-    controlY = controlY + spacing
-    local txtBlacklist = createTextBox("Añadir a Blacklist...", controlY)
-    controlY = controlY + spacing
-    local btnRefresh = createButton("Actualizar Listas", controlY)
+    -- Nuevo Componente: Interruptor (Toggle Switch) elegante
+    local function createSwitch(parent, text, yPos, stateVar)
+        local container = Instance.new("Frame")
+        container.Size = UDim2.new(1, -20, 0, 30)
+        container.Position = UDim2.new(0, 10, 0, yPos)
+        container.BackgroundTransparency = 1
+        container.Parent = parent
 
-    -- Listas Derechas (50% / 50% exacto)
+        local lbl = Instance.new("TextLabel")
+        lbl.Size = UDim2.new(0.7, 0, 1, 0)
+        lbl.BackgroundTransparency = 1
+        lbl.Text = text
+        lbl.TextColor3 = State.Theme.Text
+        lbl.Font = Enum.Font.Gotham
+        lbl.TextSize = 11
+        lbl.TextXAlignment = Enum.TextXAlignment.Left
+        lbl.Parent = container
+
+        local bg = Instance.new("Frame")
+        bg.Size = UDim2.new(0, 36, 0, 16)
+        bg.Position = UDim2.new(1, -36, 0.5, -8)
+        bg.BackgroundColor3 = State[stateVar] and State.Theme.Accent or Color3.fromRGB(50, 50, 50)
+        applyCorners(bg, 8)
+        bg.Parent = container
+
+        local circle = Instance.new("Frame")
+        circle.Size = UDim2.new(0, 12, 0, 12)
+        circle.Position = State[stateVar] and UDim2.new(1, -14, 0.5, -6) or UDim2.new(0, 2, 0.5, -6)
+        circle.BackgroundColor3 = Color3.new(1, 1, 1)
+        applyCorners(circle, 6)
+        circle.Parent = bg
+
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(1, 0, 1, 0)
+        btn.BackgroundTransparency = 1
+        btn.Text = ""
+        btn.Parent = bg
+
+        -- Animación y Cambio de Variable
+        btn.MouseButton1Click:Connect(function()
+            State[stateVar] = not State[stateVar]
+            local isOn = State[stateVar]
+            bg.BackgroundColor3 = isOn and State.Theme.Accent or Color3.fromRGB(50, 50, 50)
+            -- Animación sencilla de posición
+            circle:TweenPosition(
+                isOn and UDim2.new(1, -14, 0.5, -6) or UDim2.new(0, 2, 0.5, -6),
+                "Out", "Quad", 0.15, true
+            )
+        end)
+    end
+
+    -- ================== COLUMNA 1 (Controles Básicos) ==================
+    local cy1 = 0
+    local btnToggle = createButton(col1, "Auto Kill: INACTIVO", cy1)
+    cy1 = cy1 + 36
+    local btnMode = createButton(col1, "Modo: TODOS", cy1, State.Theme.Accent, State.Theme.TextDark)
+    cy1 = cy1 + 36
+    local txtTarget = createTextBox(col1, "Buscar jugador...", cy1)
+    cy1 = cy1 + 36
+    local txtWhitelist = createTextBox(col1, "Añadir a Whitelist...", cy1)
+    cy1 = cy1 + 36
+    local txtBlacklist = createTextBox(col1, "Añadir a Blacklist...", cy1)
+    
+    -- ================== COLUMNA 2 (Listas Visuales) ==================
     local playerList = Instance.new("ScrollingFrame")
-    playerList.Size = UDim2.new(1, -10, 0.5, -5)
+    playerList.Size = UDim2.new(1, -10, 0.5, -18)
     playerList.Position = UDim2.new(0, 5, 0, 5)
     playerList.BackgroundTransparency = 1
     playerList.ScrollBarThickness = 3
     playerList.ScrollBarImageColor3 = State.Theme.Accent
-    playerList.Parent = rightPanel
+    playerList.Parent = col2
 
     local listLayout = Instance.new("UIListLayout")
     listLayout.Padding = UDim.new(0, 4)
     listLayout.Parent = playerList
 
     local blacklistList = Instance.new("ScrollingFrame")
-    blacklistList.Size = UDim2.new(1, -10, 0.5, -10)
+    blacklistList.Size = UDim2.new(1, -10, 0.5, -18)
     blacklistList.Position = UDim2.new(0, 5, 0.5, 5)
     blacklistList.BackgroundTransparency = 1
     blacklistList.ScrollBarThickness = 3
     blacklistList.ScrollBarImageColor3 = State.Theme.Danger
-    blacklistList.Parent = rightPanel
+    blacklistList.Parent = col2
 
     local blacklistLayout = Instance.new("UIListLayout")
     blacklistLayout.Padding = UDim.new(0, 4)
     blacklistLayout.Parent = blacklistList
+
+    local btnRefresh = createButton(col2, "Actualizar Listas", 0, Color3.fromRGB(45, 45, 45))
+    btnRefresh.Size = UDim2.new(1, -10, 0, 20)
+    btnRefresh.Position = UDim2.new(0, 5, 1, -25)
+    
+    -- ================== COLUMNA 3 (Configuración Extra) ==================
+    local lblConfig = Instance.new("TextLabel")
+    lblConfig.Size = UDim2.new(1, 0, 0, 25)
+    lblConfig.BackgroundTransparency = 1
+    lblConfig.Text = " CONFIGURACIÓN EXTRA"
+    lblConfig.TextColor3 = State.Theme.Accent
+    lblConfig.Font = Enum.Font.GothamBold
+    lblConfig.TextSize = 11
+    lblConfig.TextXAlignment = Enum.TextXAlignment.Left
+    lblConfig.Parent = col3
+
+    local cy3 = 30
+    createSwitch(col3, "Anti-AFK Automático", cy3, "AntiAFK")
+    cy3 = cy3 + 35
+    createSwitch(col3, "Notificar Blacklist", cy3, "Notificaciones")
+    cy3 = cy3 + 35
+    createSwitch(col3, "Ataque Rápido (0.01)", cy3, "AtaqueRapido")
+
 
     -- ================== LÓGICA DE INTERFAZ ==================
     local function updatePlayerList()
@@ -432,12 +527,12 @@ if isAuthorized() then
         end
 
         local noneBtn = Instance.new("TextButton")
-        noneBtn.Size = UDim2.new(1, 0, 0, 24)
+        noneBtn.Size = UDim2.new(1, 0, 0, 22)
         noneBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
         noneBtn.Text = "Restablecer Cámara"
         noneBtn.TextColor3 = State.Theme.Text
         noneBtn.Font = Enum.Font.Gotham
-        noneBtn.TextSize = 11
+        noneBtn.TextSize = 10
         applyCorners(noneBtn, 4)
         noneBtn.Parent = playerList
 
@@ -452,9 +547,9 @@ if isAuthorized() then
 
         for _, player in pairs(Players:GetPlayers()) do
             local btn = Instance.new("TextButton")
-            btn.Size = UDim2.new(1, 0, 0, 24)
+            btn.Size = UDim2.new(1, 0, 0, 22)
             btn.Font = Enum.Font.Gotham
-            btn.TextSize = 11
+            btn.TextSize = 10
             applyCorners(btn, 4)
 
             local isMe = player == LocalPlayer
@@ -505,12 +600,12 @@ if isAuthorized() then
 
         for index, name in ipairs(State.Blacklist) do
             local btn = Instance.new("TextButton")
-            btn.Size = UDim2.new(1, 0, 0, 24)
+            btn.Size = UDim2.new(1, 0, 0, 22)
             btn.Font = Enum.Font.Gotham
             btn.BackgroundColor3 = Color3.fromRGB(70, 35, 35)
             btn.Text = name .. " [ × ]"
             btn.TextColor3 = State.Theme.Text
-            btn.TextSize = 11
+            btn.TextSize = 10
             applyCorners(btn, 4)
             btn.Parent = blacklistList
 
@@ -523,7 +618,7 @@ if isAuthorized() then
         blacklistList.CanvasSize = UDim2.new(0, 0, 0, blacklistLayout.AbsoluteContentSize.Y)
     end
 
-    -- Eventos de Botones
+    -- Eventos de Botones Principales
     btnToggle.MouseButton1Click:Connect(function()
         State.AutoKillEnabled = not State.AutoKillEnabled
         if State.AutoKillEnabled then
@@ -617,9 +712,8 @@ if isAuthorized() then
         end
     end)
 
-    print("=== HUB VAL-26P CARGADO ===")
+    print("=== HUB VAL-26P V2 (3 COLUMNAS) CARGADO ===")
 else
-    -- DISEÑO DEL AVISO DE DENEGACIÓN CORREGIDO
     local alertGui = Instance.new("ScreenGui")
     alertGui.Name = "AccessDenied"
     alertGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
