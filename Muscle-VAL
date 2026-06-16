@@ -1,0 +1,652 @@
+-- AUTO KILL SUPREMO HORIZONTAL - VERSIÓN ELEGANTE (DARK GREY)
+-- Hub horizontal optimizado | Funciones 100% funcionales y seguras
+
+-- =====================================================================
+-- 1. SERVICIOS Y VARIABLES GLOBALES
+-- =====================================================================
+local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
+local StarterGui = game:GetService("StarterGui")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local Camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+
+local State = {
+    AutoKillEnabled = false,
+    AutoKillAll = true,
+    TargetPlayerName = "",
+    Whitelist = {},
+    Blacklist = {},
+    SpectatingPlayer = nil,
+    AttackConnection = nil,
+    SpectateConnection = nil,
+    AttackTick = tick(),
+    -- Paleta de colores elegante y profesional (Tonos Grises)
+    Theme = {
+        Background = Color3.fromRGB(21, 21, 21),
+        Panel = Color3.fromRGB(30, 30, 30),
+        Button = Color3.fromRGB(40, 40, 40),
+        ButtonHover = Color3.fromRGB(50, 50, 50),
+        Accent = Color3.fromRGB(160, 160, 160), -- Gris plata
+        AccentActive = Color3.fromRGB(200, 200, 200),
+        Danger = Color3.fromRGB(140, 60, 60),
+        Text = Color3.fromRGB(240, 240, 240),
+        TextDark = Color3.fromRGB(30, 30, 30)
+    }
+}
+
+-- =====================================================================
+-- 2. SISTEMA DE SEGURIDAD REMOTO
+-- =====================================================================
+local function isAuthorized()
+    local myName = LocalPlayer.Name
+    -- Enlace ofuscado con string.char (Pastebin RAW)
+    local linkLista = string.char(104, 116, 116, 112, 115, 58, 47, 47, 112, 97, 115, 116, 101, 98, 105, 110, 46, 99, 111, 109, 47, 114, 97, 119, 47, 84, 56, 84, 97, 74, 69, 50, 89) 
+    
+    local success, content = pcall(function()
+        return game:HttpGet(linkLista)
+    end)
+    
+    if success and content then
+        if string.find(string.lower(content), string.lower(myName)) then
+            return true
+        end
+    else
+        warn("No se pudo conectar a la base de datos de seguridad.")
+    end
+    return false
+end
+
+-- =====================================================================
+-- 3. SISTEMA DE GUARDADO LOCAL (JSON)
+-- =====================================================================
+local function saveLists()
+    if writefile then
+        pcall(function()
+            writefile("AutoKill_Whitelist.json", HttpService:JSONEncode(State.Whitelist))
+            writefile("AutoKill_Blacklist.json", HttpService:JSONEncode(State.Blacklist))
+        end)
+    end
+end
+
+local function loadLists()
+    if isfile and readfile then
+        pcall(function()
+            if isfile("AutoKill_Whitelist.json") then
+                State.Whitelist = HttpService:JSONDecode(readfile("AutoKill_Whitelist.json")) or {}
+            end
+            if isfile("AutoKill_Blacklist.json") then
+                State.Blacklist = HttpService:JSONDecode(readfile("AutoKill_Blacklist.json")) or {}
+            end
+        end)
+    end
+end
+loadLists()
+
+-- =====================================================================
+-- 4. LÓGICA DE OBJETIVOS Y COMBATE
+-- =====================================================================
+local function isWhitelisted(plr)
+    for _, name in ipairs(State.Whitelist) do
+        if plr.Name:lower() == name:lower() then return true end
+    end
+    return false
+end
+
+local function isBlacklisted(plr)
+    for _, name in ipairs(State.Blacklist) do
+        if plr.Name:lower() == name:lower() then return true end
+    end
+    return false
+end
+
+local function equipPunch()
+    if not LocalPlayer.Character then return false end
+    local char = LocalPlayer.Character
+    if char:FindFirstChild("Punch") then return true end
+    
+    local backpack = LocalPlayer.Backpack
+    local punch = backpack:FindFirstChild("Punch")
+    if punch then
+        punch.Parent = char
+        return true
+    end
+    return false
+end
+
+local function getValidTargets()
+    local targets = {}
+    local targetAdded = {}
+
+    local function addTarget(player)
+        if targetAdded[player] then return end
+        local char = player.Character
+        if char then
+            local humanoid = char:FindFirstChild("Humanoid")
+            local root = char:FindFirstChild("HumanoidRootPart")
+            if humanoid and root and humanoid.Health > 0 then
+                targetAdded[player] = true
+                table.insert(targets, { Player = player, Character = char, Humanoid = humanoid, RootPart = root })
+            end
+        end
+    end
+
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and isBlacklisted(player) then
+            addTarget(player)
+        end
+    end
+
+    if State.AutoKillAll then
+        for _, player in pairs(Players:GetPlayers()) do
+            if player == LocalPlayer or isWhitelisted(player) then continue end
+            addTarget(player)
+        end
+    elseif State.TargetPlayerName ~= "" then
+        for _, player in pairs(Players:GetPlayers()) do
+            if player == LocalPlayer or not player.Name:lower():find(State.TargetPlayerName:lower()) then continue end
+            addTarget(player)
+            break
+        end
+    end
+
+    return targets
+end
+
+-- ================== AUTO KILL PRINCIPAL ==================
+local function startAutoKill()
+    if State.AttackConnection then State.AttackConnection:Disconnect() end
+
+    State.AttackConnection = RunService.Heartbeat:Connect(function()
+        if not State.AutoKillEnabled or not LocalPlayer.Character then return end
+        if tick() - State.AttackTick < 0.02 then return end
+        State.AttackTick = tick()
+
+        equipPunch()
+        local myChar = LocalPlayer.Character
+        local leftHand = myChar:FindFirstChild("LeftHand")
+        local rightHand = myChar:FindFirstChild("RightHand")
+
+        if not leftHand and not rightHand then return end
+
+        for _, target in ipairs(getValidTargets()) do
+            if target.Humanoid and target.Humanoid.Health > 0 then
+                pcall(function()
+                    LocalPlayer.muscleEvent:FireServer("punch", "leftHand")
+                    LocalPlayer.muscleEvent:FireServer("punch", "rightHand")
+                end)
+                if leftHand then
+                    pcall(function()
+                        firetouchinterest(leftHand, target.RootPart, 0)
+                        firetouchinterest(leftHand, target.RootPart, 1)
+                    end)
+                end
+                if rightHand then
+                    pcall(function()
+                        firetouchinterest(rightHand, target.RootPart, 0)
+                        firetouchinterest(rightHand, target.RootPart, 1)
+                    end)
+                end
+                task.wait(0.01)
+            end
+        end
+    end)
+end
+
+local function stopAutoKill()
+    if State.AttackConnection then
+        State.AttackConnection:Disconnect()
+        State.AttackConnection = nil
+    end
+end
+
+-- ================== BLACKLIST INDEPENDIENTE ==================
+local BlacklistConnection = nil
+local BlacklistAttackTick = tick()
+
+local function startBlacklistKill()
+    if BlacklistConnection then BlacklistConnection:Disconnect() end
+    
+    BlacklistConnection = RunService.Heartbeat:Connect(function()
+        if not LocalPlayer.Character then return end
+        if tick() - BlacklistAttackTick < 0.02 then return end
+        BlacklistAttackTick = tick()
+        
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and isBlacklisted(player) then
+                local char = player.Character
+                if char and char:FindFirstChild("HumanoidRootPart") and char.Humanoid.Health > 0 then
+                    equipPunch()
+                    pcall(function()
+                        LocalPlayer.muscleEvent:FireServer("punch", "leftHand")
+                        LocalPlayer.muscleEvent:FireServer("punch", "rightHand")
+                        local myChar = LocalPlayer.Character
+                        if myChar:FindFirstChild("LeftHand") then
+                            firetouchinterest(myChar.LeftHand, char.HumanoidRootPart, 0)
+                            firetouchinterest(myChar.LeftHand, char.HumanoidRootPart, 1)
+                        end
+                        if myChar:FindFirstChild("RightHand") then
+                            firetouchinterest(myChar.RightHand, char.HumanoidRootPart, 0)
+                            firetouchinterest(myChar.RightHand, char.HumanoidRootPart, 1)
+                        end
+                    end)
+                end
+            end
+        end
+    end)
+end
+
+-- ================== SISTEMA DE CÁMARA ==================
+local function updateSpectate()
+    if State.SpectateConnection then State.SpectateConnection:Disconnect() end
+
+    State.SpectateConnection = RunService.Heartbeat:Connect(function()
+        if State.SpectatingPlayer and State.SpectatingPlayer ~= LocalPlayer then
+            if State.SpectatingPlayer.Character then
+                local humanoid = State.SpectatingPlayer.Character:FindFirstChild("Humanoid")
+                if humanoid and Camera.CameraSubject ~= humanoid then
+                    Camera.CameraSubject = humanoid
+                end
+            end
+        end
+    end)
+end
+
+-- =====================================================================
+-- 5. INTERFAZ GRÁFICA (UI ELEGANTE MINIMALISTA)
+-- =====================================================================
+if isAuthorized() then
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "ValControlHub"
+    screenGui.ResetOnSpawn = false
+    screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Size = UDim2.new(0, 480, 0, 310)
+    mainFrame.Position = UDim2.new(0.5, -240, 0.5, -155)
+    mainFrame.BackgroundColor3 = State.Theme.Background
+    mainFrame.Active = true
+    mainFrame.Visible = false
+    mainFrame.Parent = screenGui
+
+    local mainStroke = Instance.new("UIStroke")
+    mainStroke.Color = Color3.fromRGB(0, 0, 0)
+    mainStroke.Transparency = 0.3
+    mainStroke.Thickness = 2
+    mainStroke.Parent = mainFrame
+
+    -- Arrastre Suave
+    local dragging, dragInput, dragStart, startPos
+    mainFrame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = mainFrame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then dragging = false end
+            end)
+        end
+    end)
+    mainFrame.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+
+    -- Barra de Título
+    local titleFrame = Instance.new("Frame")
+    titleFrame.Size = UDim2.new(1, 0, 0, 30)
+    titleFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    titleFrame.BorderSizePixel = 0
+    titleFrame.Parent = mainFrame
+
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, -40, 1, 0)
+    title.Position = UDim2.new(0, 15, 0, 0)
+    title.BackgroundTransparency = 1
+    title.Text = "VAL-26P | Control Panel"
+    title.TextColor3 = State.Theme.Accent
+    title.Font = Enum.Font.GothamMedium
+    title.TextSize = 12
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.Parent = titleFrame
+
+    -- Botón Cerrar
+    local btnClose = Instance.new("TextButton")
+    btnClose.Size = UDim2.new(0, 30, 0, 30)
+    btnClose.Position = UDim2.new(1, -30, 0, 0)
+    btnClose.BackgroundTransparency = 1
+    btnClose.Text = "×"
+    btnClose.TextColor3 = State.Theme.Accent
+    btnClose.TextSize = 20
+    btnClose.Font = Enum.Font.Gotham
+    btnClose.Parent = titleFrame
+    btnClose.MouseButton1Click:Connect(function() mainFrame.Visible = false end)
+
+    -- ================== PANELES ==================
+    local leftPanel = Instance.new("Frame")
+    leftPanel.Size = UDim2.new(0, 220, 1, -40)
+    leftPanel.Position = UDim2.new(0, 10, 0, 40)
+    leftPanel.BackgroundTransparency = 1
+    leftPanel.Parent = mainFrame
+
+    local rightPanel = Instance.new("Frame")
+    rightPanel.Size = UDim2.new(0, 230, 1, -40)
+    rightPanel.Position = UDim2.new(0, 240, 0, 40)
+    rightPanel.BackgroundColor3 = State.Theme.Panel
+    rightPanel.Parent = mainFrame
+
+    -- Funciones Auxiliares UI
+    local function applyCorners(object, radius)
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, radius)
+        corner.Parent = object
+    end
+    applyCorners(mainFrame, 6)
+    applyCorners(rightPanel, 6)
+
+    local controlY = 0
+    local elementHeight = 28
+    local spacing = 34
+
+    local function createButton(text, yPos, bgColor, txtColor)
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(1, 0, 0, elementHeight)
+        btn.Position = UDim2.new(0, 0, 0, yPos)
+        btn.BackgroundColor3 = bgColor or State.Theme.Button
+        btn.Text = text
+        btn.TextColor3 = txtColor or State.Theme.Text
+        btn.TextSize = 11
+        btn.Font = Enum.Font.GothamMedium
+        applyCorners(btn, 4)
+        btn.Parent = leftPanel
+        return btn
+    end
+
+    local function createTextBox(placeholder, yPos)
+        local txt = Instance.new("TextBox")
+        txt.Size = UDim2.new(1, 0, 0, elementHeight)
+        txt.Position = UDim2.new(0, 0, 0, yPos)
+        txt.PlaceholderText = placeholder
+        txt.TextSize = 11
+        txt.Font = Enum.Font.Gotham
+        txt.BackgroundColor3 = State.Theme.Button
+        txt.TextColor3 = State.Theme.Text
+        txt.TextXAlignment = Enum.TextXAlignment.Left
+        applyCorners(txt, 4)
+        
+        local pad = Instance.new("UIPadding")
+        pad.PaddingLeft = UDim.new(0, 10)
+        pad.Parent = txt
+        txt.Parent = leftPanel
+        return txt
+    end
+
+    -- Controles Izquierdos
+    local btnToggle = createButton("Auto Kill: INACTIVO", controlY)
+    controlY = controlY + spacing
+    local btnMode = createButton("Modo: TODOS", controlY, State.Theme.Accent, State.Theme.TextDark)
+    controlY = controlY + spacing
+    local txtTarget = createTextBox("Buscar jugador...", controlY)
+    controlY = controlY + spacing
+    local txtWhitelist = createTextBox("Añadir a Whitelist...", controlY)
+    controlY = controlY + spacing
+    local txtBlacklist = createTextBox("Añadir a Blacklist...", controlY)
+    controlY = controlY + spacing
+    local btnRefresh = createButton("Actualizar Listas", controlY)
+
+    -- Listas Derechas (50% / 50% exacto)
+    local playerList = Instance.new("ScrollingFrame")
+    playerList.Size = UDim2.new(1, -10, 0.5, -5)
+    playerList.Position = UDim2.new(0, 5, 0, 5)
+    playerList.BackgroundTransparency = 1
+    playerList.ScrollBarThickness = 3
+    playerList.ScrollBarImageColor3 = State.Theme.Accent
+    playerList.Parent = rightPanel
+
+    local listLayout = Instance.new("UIListLayout")
+    listLayout.Padding = UDim.new(0, 4)
+    listLayout.Parent = playerList
+
+    local blacklistList = Instance.new("ScrollingFrame")
+    blacklistList.Size = UDim2.new(1, -10, 0.5, -10)
+    blacklistList.Position = UDim2.new(0, 5, 0.5, 5)
+    blacklistList.BackgroundTransparency = 1
+    blacklistList.ScrollBarThickness = 3
+    blacklistList.ScrollBarImageColor3 = State.Theme.Danger
+    blacklistList.Parent = rightPanel
+
+    local blacklistLayout = Instance.new("UIListLayout")
+    blacklistLayout.Padding = UDim.new(0, 4)
+    blacklistLayout.Parent = blacklistList
+
+    -- ================== LÓGICA DE INTERFAZ ==================
+    local function updatePlayerList()
+        for _, child in ipairs(playerList:GetChildren()) do
+            if child:IsA("TextButton") then child:Destroy() end
+        end
+
+        local noneBtn = Instance.new("TextButton")
+        noneBtn.Size = UDim2.new(1, 0, 0, 24)
+        noneBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        noneBtn.Text = "Restablecer Cámara"
+        noneBtn.TextColor3 = State.Theme.Text
+        noneBtn.Font = Enum.Font.Gotham
+        noneBtn.TextSize = 11
+        applyCorners(noneBtn, 4)
+        noneBtn.Parent = playerList
+
+        noneBtn.MouseButton1Click:Connect(function()
+            State.SpectatingPlayer = nil
+            if LocalPlayer.Character then
+                local humanoid = LocalPlayer.Character:FindFirstChild("Humanoid")
+                if humanoid then Camera.CameraSubject = humanoid end
+            end
+            updatePlayerList()
+        end)
+
+        for _, player in pairs(Players:GetPlayers()) do
+            local btn = Instance.new("TextButton")
+            btn.Size = UDim2.new(1, 0, 0, 24)
+            btn.Font = Enum.Font.Gotham
+            btn.TextSize = 11
+            applyCorners(btn, 4)
+
+            local isMe = player == LocalPlayer
+            local isWhitelistedPlayer = isWhitelisted(player)
+            local isSpectating = State.SpectatingPlayer == player
+
+            if isMe then
+                btn.BackgroundColor3 = Color3.fromRGB(50, 65, 50)
+                btn.Text = player.Name .. " (Tú)"
+            elseif isWhitelistedPlayer then
+                btn.BackgroundColor3 = Color3.fromRGB(60, 50, 70)
+                btn.Text = player.Name .. " (Aliado)"
+            elseif isSpectating then
+                btn.BackgroundColor3 = State.Theme.Accent
+                btn.Text = player.Name .. " [Vista]"
+                btn.TextColor3 = State.Theme.TextDark
+            else
+                btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+                btn.Text = player.Name
+            end
+
+            if not isSpectating then btn.TextColor3 = State.Theme.Text end
+            btn.Parent = playerList
+
+            if not isMe then
+                btn.MouseButton1Click:Connect(function()
+                    if not isWhitelistedPlayer then
+                        State.TargetPlayerName = player.Name
+                        State.AutoKillAll = false
+                        txtTarget.Text = player.Name
+                        btnMode.Text = "Modo: INDIVIDUAL"
+                        btnMode.BackgroundColor3 = Color3.fromRGB(110, 110, 110)
+                        btnMode.TextColor3 = State.Theme.Text
+                    end
+                    State.SpectatingPlayer = player
+                    updateSpectate()
+                    updatePlayerList()
+                end)
+            end
+        end
+        playerList.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y)
+    end
+
+    local function updateBlacklistVisual()
+        for _, child in ipairs(blacklistList:GetChildren()) do
+            if child:IsA("TextButton") then child:Destroy() end
+        end
+
+        for index, name in ipairs(State.Blacklist) do
+            local btn = Instance.new("TextButton")
+            btn.Size = UDim2.new(1, 0, 0, 24)
+            btn.Font = Enum.Font.Gotham
+            btn.BackgroundColor3 = Color3.fromRGB(70, 35, 35)
+            btn.Text = name .. " [ × ]"
+            btn.TextColor3 = State.Theme.Text
+            btn.TextSize = 11
+            applyCorners(btn, 4)
+            btn.Parent = blacklistList
+
+            btn.MouseButton1Click:Connect(function()
+                table.remove(State.Blacklist, index)
+                updateBlacklistVisual()
+                saveLists()
+            end)
+        end
+        blacklistList.CanvasSize = UDim2.new(0, 0, 0, blacklistLayout.AbsoluteContentSize.Y)
+    end
+
+    -- Eventos de Botones
+    btnToggle.MouseButton1Click:Connect(function()
+        State.AutoKillEnabled = not State.AutoKillEnabled
+        if State.AutoKillEnabled then
+            btnToggle.Text = "Auto Kill: ACTIVO"
+            btnToggle.BackgroundColor3 = State.Theme.AccentActive
+            btnToggle.TextColor3 = State.Theme.TextDark
+            startAutoKill()
+        else
+            btnToggle.Text = "Auto Kill: INACTIVO"
+            btnToggle.BackgroundColor3 = State.Theme.Button
+            btnToggle.TextColor3 = State.Theme.Text
+            stopAutoKill()
+        end
+    end)
+
+    btnMode.MouseButton1Click:Connect(function()
+        State.AutoKillAll = not State.AutoKillAll
+        if State.AutoKillAll then
+            btnMode.Text = "Modo: TODOS"
+            btnMode.BackgroundColor3 = State.Theme.Accent
+            btnMode.TextColor3 = State.Theme.TextDark
+        else
+            btnMode.Text = "Modo: INDIVIDUAL"
+            btnMode.BackgroundColor3 = Color3.fromRGB(110, 110, 110)
+            btnMode.TextColor3 = State.Theme.Text
+        end
+    end)
+
+    txtTarget.FocusLost:Connect(function(enterPressed)
+        if enterPressed and txtTarget.Text ~= "" then
+            State.TargetPlayerName = txtTarget.Text
+            State.AutoKillAll = false
+            btnMode.Text = "Modo: INDIVIDUAL"
+            btnMode.BackgroundColor3 = Color3.fromRGB(110, 110, 110)
+            btnMode.TextColor3 = State.Theme.Text
+        end
+    end)
+
+    txtWhitelist.FocusLost:Connect(function(enterPressed)
+        if enterPressed and txtWhitelist.Text ~= "" then
+            table.insert(State.Whitelist, txtWhitelist.Text)
+            txtWhitelist.Text = ""
+            updatePlayerList()
+            saveLists()
+        end
+    end)
+
+    txtBlacklist.FocusLost:Connect(function(enterPressed)
+        if enterPressed and txtBlacklist.Text ~= "" then
+            table.insert(State.Blacklist, txtBlacklist.Text)
+            txtBlacklist.Text = ""
+            updateBlacklistVisual()
+            saveLists()
+        end
+    end)
+
+    btnRefresh.MouseButton1Click:Connect(function()
+        updatePlayerList()
+    end)
+
+    -- Botón Flotante
+    local floatBtn = Instance.new("TextButton")
+    floatBtn.Size = UDim2.new(0, 40, 0, 40)
+    floatBtn.Position = UDim2.new(0.95, -40, 0.05, 0)
+    floatBtn.BackgroundColor3 = State.Theme.Background
+    floatBtn.Text = "VAL"
+    floatBtn.TextColor3 = State.Theme.Accent
+    floatBtn.TextSize = 12
+    floatBtn.Font = Enum.Font.GothamMedium
+    applyCorners(floatBtn, 20)
+    floatBtn.Parent = screenGui
+
+    local floatStroke = Instance.new("UIStroke")
+    floatStroke.Color = State.Theme.Accent
+    floatStroke.Thickness = 1
+    floatStroke.Parent = floatBtn
+
+    floatBtn.MouseButton1Click:Connect(function()
+        mainFrame.Visible = not mainFrame.Visible
+        if mainFrame.Visible then updatePlayerList() end
+    end)
+
+    -- Inicialización Final
+    updatePlayerList()
+    updateBlacklistVisual()
+    startBlacklistKill()
+
+    task.spawn(function()
+        while task.wait(5) do
+            if mainFrame.Visible then updatePlayerList() end
+        end
+    end)
+
+    print("=== HUB VAL-26P CARGADO ===")
+else
+    -- DISEÑO DEL AVISO DE DENEGACIÓN CORREGIDO
+    local alertGui = Instance.new("ScreenGui")
+    alertGui.Name = "AccessDenied"
+    alertGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+    
+    local alertFrame = Instance.new("Frame")
+    alertFrame.Size = UDim2.new(0, 320, 0, 110)
+    alertFrame.Position = UDim2.new(0.5, -160, 0.5, -55)
+    alertFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    alertFrame.Parent = alertGui
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = alertFrame
+
+    local alertStroke = Instance.new("UIStroke")
+    alertStroke.Color = Color3.fromRGB(200, 50, 50)
+    alertStroke.Thickness = 2
+    alertStroke.Parent = alertFrame
+    
+    local alertText = Instance.new("TextLabel")
+    alertText.Size = UDim2.new(1, -20, 1, -20)
+    alertText.Position = UDim2.new(0, 10, 0, 10)
+    alertText.BackgroundTransparency = 1
+    alertText.Text = "ACCESO DENEGADO\n\nNo tienes permiso en la base de datos para ejecutar este script."
+    alertText.TextColor3 = Color3.fromRGB(220, 80, 80)
+    alertText.Font = Enum.Font.GothamMedium
+    alertText.TextSize = 13
+    alertText.TextWrapped = true
+    alertText.Parent = alertFrame
+end
