@@ -483,6 +483,9 @@ if isAuthorized() then
     local txtWhitelist = createTextBox(col1, "Añadir a Whitelist...", cy1)
     cy1 = cy1 + 36
     local txtBlacklist = createTextBox(col1, "Añadir a Blacklist...", cy1)
+local btnRefresh = createButton(col1, "Actualizar Listas", 0, Color3.fromRGB(45, 45, 45))
+    btnRefresh.Size = UDim2.new(1, 0, 0, 28)
+    btnRefresh.Position = UDim2.new(0, 0, 1, -28)
     
     -- ================== COLUMNA 2 (Listas Visuales) ==================
     local playerList = Instance.new("ScrollingFrame")
@@ -509,9 +512,7 @@ if isAuthorized() then
     blacklistLayout.Padding = UDim.new(0, 4)
     blacklistLayout.Parent = blacklistList
 
-    local btnRefresh = createButton(col2, "Actualizar Listas", 0, Color3.fromRGB(45, 45, 45))
-    btnRefresh.Size = UDim2.new(1, -10, 0, 20)
-    btnRefresh.Position = UDim2.new(0, 5, 1, -25)
+    
     
     -- ================== COLUMNA 3 (Configuración Extra) ==================
     local lblConfig = Instance.new("TextLabel")
