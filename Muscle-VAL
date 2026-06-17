@@ -533,7 +533,7 @@ local btnRefresh = createButton(col1, "Actualizar Listas", 0, Color3.fromRGB(45,
     cy3 = cy3 + 35
     createSwitch(col3, "Ataque Rápido (0.01)", cy3, "AtaqueRapido")
     cy3 = cy3 + 35
-    createSwitch(col3, "Friends Whitelist", cy3, "FriendsWhitelist")
+    createSwitch(col3, "Whitelist Amigos", cy3, "FriendsWhitelist")
 
 
     -- ================== LÓGICA DE INTERFAZ ==================
