@@ -29,6 +29,8 @@ local State = {
     Notificaciones = false,
     AtaqueRapido = false,
     FriendsWhitelist = false,
+    LockPosition = false,
+    SavedPosition = nil,
 
     -- Paleta de colores elegante y profesional (Tonos Grises)
     Theme = {
@@ -283,6 +285,42 @@ LocalPlayer.Idled:Connect(function()
     end
 end)
 
+-- ================== SISTEMA DE LOCK POSITION ==================
+task.spawn(function()
+    while task.wait(0.5) do -- Revisa cada medio segundo
+        local char = LocalPlayer.Character
+        local root = char and char:FindFirstChild("HumanoidRootPart")
+        local hum = char and char:FindFirstChild("Humanoid")
+        
+        if State.LockPosition then
+            if root and hum and hum.Health > 0 then
+                -- 1. Si no hay posición guardada, guarda tu lugar actual
+                if not State.SavedPosition then
+                    State.SavedPosition = root.CFrame
+                end
+                
+                -- 2. Anclar el personaje para que NADIE pueda empujarlo
+                if not root.Anchored then
+                    root.Anchored = true
+                end
+                
+                -- 3. Si reapareciste muy lejos (te mataron), te teletransporta de vuelta
+                if (root.Position - State.SavedPosition.Position).Magnitude > 10 then
+                    root.CFrame = State.SavedPosition
+                end
+            end
+        else
+            -- Si apagas el botón: borra la posición y te desancla para que puedas moverte
+            if State.SavedPosition then
+                State.SavedPosition = nil
+                if root then
+                    root.Anchored = false
+                end
+            end
+        end
+    end
+end)
+
 -- =====================================================================
 -- 5. INTERFAZ GRÁFICA (UI ELEGANTE 3 COLUMNAS)
 -- =====================================================================
@@ -533,7 +571,9 @@ local btnRefresh = createButton(col1, "Actualizar Listas", 0, Color3.fromRGB(45,
     cy3 = cy3 + 35
     createSwitch(col3, "Ataque Rápido (0.01)", cy3, "AtaqueRapido")
     cy3 = cy3 + 35
-    createSwitch(col3, "Whitelist Amigos", cy3, "FriendsWhitelist")
+    createSwitch(col3, "Whitelist Amigos",   cy3, "FriendsWhitelist")
+cy3 = cy3 + 35
+    createSwitch(col3, "Lock Position", cy3, "LockPosition")
 
 
     -- ================== LÓGICA DE INTERFAZ ==================
