@@ -28,6 +28,7 @@ local State = {
     AntiAFK = true,
     Notificaciones = false,
     AtaqueRapido = false,
+    FriendsWhitelist = false,
 
     -- Paleta de colores elegante y profesional (Tonos Grises)
     Theme = {
@@ -91,11 +92,22 @@ loadLists()
 -- 4. LÓGICA DE OBJETIVOS Y COMBATE
 -- =====================================================================
 local function isWhitelisted(plr)
+    -- Si el botón está activado, verifica si son amigos en Roblox
+    if State.FriendsWhitelist then
+        -- pcall para evitar errores si el servidor de Roblox tarda en responder
+        local success, isFriend = pcall(function()
+            return LocalPlayer:IsFriendsWith(plr.UserId)
+        end)
+        if success and isFriend then return true end
+    end
+
+    -- Lógica normal: revisa la lista escrita en el Hub
     for _, name in ipairs(State.Whitelist) do
         if plr.Name:lower() == name:lower() then return true end
     end
     return false
 end
+
 
 local function isBlacklisted(plr)
     for _, name in ipairs(State.Blacklist) do
@@ -518,6 +530,8 @@ if isAuthorized() then
     createSwitch(col3, "Notificar Blacklist", cy3, "Notificaciones")
     cy3 = cy3 + 35
     createSwitch(col3, "Ataque Rápido (0.01)", cy3, "AtaqueRapido")
+    cy3 = cy3 + 35
+    createSwitch(col3, "Ignorar a mis Amigos", cy3, "FriendsWhitelist")
 
 
     -- ================== LÓGICA DE INTERFAZ ==================
