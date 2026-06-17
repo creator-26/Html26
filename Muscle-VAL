@@ -680,14 +680,29 @@ if isAuthorized() then
         end
     end)
 
-    txtBlacklist.FocusLost:Connect(function(enterPressed)
+        txtBlacklist.FocusLost:Connect(function(enterPressed)
         if enterPressed and txtBlacklist.Text ~= "" then
-            table.insert(State.Blacklist, txtBlacklist.Text)
+            local newName = txtBlacklist.Text
+            
+            -- 1. REVISAR Y BORRAR DE LA WHITELIST
+            -- Recorremos la tabla al revés para poder borrar sin causar errores
+            for i = #State.Whitelist, 1, -1 do
+                if State.Whitelist[i]:lower() == newName:lower() then
+                    table.remove(State.Whitelist, i)
+                end
+            end
+            
+            -- 2. AGREGAR A LA BLACKLIST
+            table.insert(State.Blacklist, newName)
+            
+            -- 3. ACTUALIZAR TODO
             txtBlacklist.Text = ""
-            updateBlacklistVisual()
-            saveLists()
+            updatePlayerList()      -- Esto le quita el color morado "(Aliado)" al instante
+            updateBlacklistVisual() -- Esto lo pone en la lista con el botón de [ × ] abajo
+            saveLists()             -- Guarda los cambios en tu .json
         end
     end)
+
 
     btnRefresh.MouseButton1Click:Connect(function()
         updatePlayerList()
