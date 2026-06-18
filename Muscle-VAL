@@ -48,10 +48,10 @@ local State = {
 
 -- =====================================================================
 -- 2. SISTEMA DE SEGURIDAD REMOTO
--- =====================================================================
+-- =========================================
 local function isAuthorized()
     local myName = LocalPlayer.Name
-    -- Enlace ofuscado con string.char (Pastebin RAW)
+    
     local linkLista = string.char(104, 116, 116, 112, 115, 58, 47, 47, 112, 97, 115, 116, 101, 98, 105, 110, 46, 99, 111, 109, 47, 114, 97, 119, 47, 84, 56, 84, 97, 74, 69, 50, 89) 
     
     local success, content = pcall(function()
