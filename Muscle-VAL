@@ -82,7 +82,7 @@ local function saveLists()
                 Notificaciones = State.Notificaciones,
                 AtaqueRapido = State.AtaqueRapido,
                 FriendsWhitelist = State.FriendsWhitelist,
-                LockPosition = State.LockPosition
+                LockPosition = State.LockPosition,
                 NewServer = State.NewServer
             }
             writefile("AutoKill_Settings.json", HttpService:JSONEncode(settings))
