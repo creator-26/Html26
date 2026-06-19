@@ -72,6 +72,18 @@ local function saveLists()
         pcall(function()
             writefile("AutoKill_Whitelist.json", HttpService:JSONEncode(State.Whitelist))
             writefile("AutoKill_Blacklist.json", HttpService:JSONEncode(State.Blacklist))
+            
+            -- NUEVO: Guardar el estado de los botones
+            local settings = {
+                AutoKillEnabled = State.AutoKillEnabled,
+                AutoKillAll = State.AutoKillAll,
+                AntiAFK = State.AntiAFK,
+                Notificaciones = State.Notificaciones,
+                AtaqueRapido = State.AtaqueRapido,
+                FriendsWhitelist = State.FriendsWhitelist,
+                LockPosition = State.LockPosition
+            }
+            writefile("AutoKill_Settings.json", HttpService:JSONEncode(settings))
         end)
     end
 end
@@ -85,12 +97,27 @@ local function loadLists()
             if isfile("AutoKill_Blacklist.json") then
                 State.Blacklist = HttpService:JSONDecode(readfile("AutoKill_Blacklist.json")) or {}
             end
+            
+            -- NUEVO: Cargar el estado de los botones
+            if isfile("AutoKill_Settings.json") then
+                local savedSettings = HttpService:JSONDecode(readfile("AutoKill_Settings.json"))
+                if savedSettings then
+                    if savedSettings.AutoKillEnabled ~= nil then State.AutoKillEnabled = savedSettings.AutoKillEnabled end
+                    if savedSettings.AutoKillAll ~= nil then State.AutoKillAll = savedSettings.AutoKillAll end
+                    if savedSettings.AntiAFK ~= nil then State.AntiAFK = savedSettings.AntiAFK end
+                    if savedSettings.Notificaciones ~= nil then State.Notificaciones = savedSettings.Notificaciones end
+                    if savedSettings.AtaqueRapido ~= nil then State.AtaqueRapido = savedSettings.AtaqueRapido end
+                    if savedSettings.FriendsWhitelist ~= nil then State.FriendsWhitelist = savedSettings.FriendsWhitelist end
+                    if savedSettings.LockPosition ~= nil then State.LockPosition = savedSettings.LockPosition end
+                end
+            end
         end)
     end
 end
 loadLists()
 
--- =====================================================================
+
+ =====================================================================
 -- 4. LÓGICA DE OBJETIVOS Y COMBATE
 -- =====================================================================
 local function isWhitelisted(plr)
@@ -508,14 +535,24 @@ if isAuthorized() then
                 isOn and UDim2.new(1, -14, 0.5, -6) or UDim2.new(0, 2, 0.5, -6),
                 "Out", "Quad", 0.15, true
             )
+            saveLists()
         end)
     end
 
     -- ================== COLUMNA 1 (Controles Básicos) ==================
     local cy1 = 0
-    local btnToggle = createButton(col1, "Auto Kill: INACTIVO", cy1)
+    -- Memoria del Botón Auto Kill
+    local txtToggle = State.AutoKillEnabled and "Auto Kill: ACTIVO" or "Auto Kill: INACTIVO"
+    local colorToggle = State.AutoKillEnabled and State.Theme.AccentActive or State.Theme.Button
+    local textCToggle = State.AutoKillEnabled and State.Theme.TextDark or State.Theme.Text
+    local btnToggle = createButton(col1, txtToggle, cy1, colorToggle, textCToggle)
     cy1 = cy1 + 36
-    local btnMode = createButton(col1, "Modo: TODOS", cy1, State.Theme.Accent, State.Theme.TextDark)
+    
+    -- Memoria del Botón Modo
+    local txtMode = State.AutoKillAll and "Modo: TODOS" or "Modo: INDIVIDUAL"
+    local colorMode = State.AutoKillAll and State.Theme.Accent or Color3.fromRGB(110, 110, 110)
+    local textCMode = State.AutoKillAll and State.Theme.TextDark or State.Theme.Text
+    local btnMode = createButton(col1, txtMode, cy1, colorMode, textCMode)
     cy1 = cy1 + 36
     local txtTarget = createTextBox(col1, "Buscar jugador...", cy1)
     cy1 = cy1 + 36
@@ -688,6 +725,7 @@ cy3 = cy3 + 35
             btnToggle.TextColor3 = State.Theme.Text
             stopAutoKill()
         end
+        saveLists()
     end)
 
     btnMode.MouseButton1Click:Connect(function()
@@ -701,6 +739,7 @@ cy3 = cy3 + 35
             btnMode.BackgroundColor3 = Color3.fromRGB(110, 110, 110)
             btnMode.TextColor3 = State.Theme.Text
         end
+        saveLists()
     end)
 
     txtTarget.FocusLost:Connect(function(enterPressed)
@@ -776,6 +815,10 @@ cy3 = cy3 + 35
     updatePlayerList()
     updateBlacklistVisual()
     startBlacklistKill()
+
+    if State.AutoKillEnabled then
+        startAutoKill()
+    end
 
     task.spawn(function()
         while task.wait(5) do
