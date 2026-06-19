@@ -31,6 +31,7 @@ local State = {
     FriendsWhitelist = false,
     LockPosition = false,
     SavedPosition = nil,
+    NewServer = false,
 
     -- Paleta de colores elegante y profesional (Tonos Grises)
     Theme = {
@@ -82,6 +83,7 @@ local function saveLists()
                 AtaqueRapido = State.AtaqueRapido,
                 FriendsWhitelist = State.FriendsWhitelist,
                 LockPosition = State.LockPosition
+                NewServer = State.NewServer
             }
             writefile("AutoKill_Settings.json", HttpService:JSONEncode(settings))
         end)
@@ -109,6 +111,7 @@ local function loadLists()
                     if savedSettings.AtaqueRapido ~= nil then State.AtaqueRapido = savedSettings.AtaqueRapido end
                     if savedSettings.FriendsWhitelist ~= nil then State.FriendsWhitelist = savedSettings.FriendsWhitelist end
                     if savedSettings.LockPosition ~= nil then State.LockPosition = savedSettings.LockPosition end
+                    if savedSettings.NewServer ~= nil then State.NewServer = savedSettings.NewServer end
                 end
             end
         end)
@@ -347,6 +350,45 @@ task.spawn(function()
         end
     end
 end)
+
+-- ================== SISTEMA DE AUTO NEW SERVER ==================
+local TeleportService = game:GetService("TeleportService")
+
+task.spawn(function()
+    while task.wait(10) do -- Revisa cada 10 segundos para no saturar el juego
+        -- Si el botón está activo y estás solo en el servidor (1 jugador)
+        if State.NewServer and #Players:GetPlayers() <= 1 then
+            
+            -- Avisamos en pantalla
+            StarterGui:SetCore("SendNotification", {
+                Title = "¡Servidor Vacío!",
+                Text = "Buscando un nuevo servidor con jugadores...",
+                Duration = 5
+            })
+            
+            pcall(function()
+                -- Buscamos la lista de servidores de este juego usando la API de Roblox
+                local url = "https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Desc&limit=100"
+                local response = game:HttpGet(url)
+                local data = HttpService:JSONDecode(response)
+                
+                if data and data.data then
+                    for _, server in ipairs(data.data) do
+                        -- Elegir un servidor que NO sea este, que TENGA gente, y que NO esté lleno
+                        if server.id ~= game.JobId and server.playing > 0 and server.playing < server.maxPlayers then
+                            TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id, LocalPlayer)
+                            break
+                        end
+                    end
+                end
+            end)
+            
+            -- Esperamos un poco para darle tiempo a teletransportarse
+            task.wait(15)
+        end
+    end
+end)
+
 
 -- =====================================================================
 -- 5. INTERFAZ GRÁFICA (UI ELEGANTE 3 COLUMNAS)
@@ -611,6 +653,8 @@ local btnRefresh = createButton(col1, "Actualizar Listas", 0, Color3.fromRGB(45,
     createSwitch(col3, "Whitelist Amigos",   cy3, "FriendsWhitelist")
 cy3 = cy3 + 35
     createSwitch(col3, "Lock Position", cy3, "LockPosition")
+cy3 = cy3 + 35
+    createSwitch(col3, "Auto New Server", cy3, "NewServer")
 
 
     -- ================== LÓGICA DE INTERFAZ ==================
