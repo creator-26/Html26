@@ -617,6 +617,18 @@ local btnRefresh = createButton(col1, "Actualizar Listas", 0, Color3.fromRGB(45,
     local listLayout = Instance.new("UIListLayout")
     listLayout.Padding = UDim.new(0, 4)
     listLayout.Parent = playerList
+    -- ================== TÍTULO DE LISTA NEGRA ==================
+    local lblBlacklistTitle = Instance.new("TextLabel")
+    lblBlacklistTitle.Size = UDim2.new(1, 0, 0, 15)
+    lblBlacklistTitle.Position = UDim2.new(0, 0, 0.5, -10) -- Centrado justo en el espacio vacío
+    lblBlacklistTitle.BackgroundTransparency = 1
+    lblBlacklistTitle.Text = "LISTA NEGRA"
+    lblBlacklistTitle.TextColor3 = State.Theme.Danger -- Color rojizo para que resalte
+    lblBlacklistTitle.Font = Enum.Font.GothamBold
+    lblBlacklistTitle.TextSize = 11
+    lblBlacklistTitle.TextXAlignment = Enum.TextXAlignment.Center -- Centrado
+    lblBlacklistTitle.Parent = col2
+    -- ===========================================================
 
     local blacklistList = Instance.new("ScrollingFrame")
     blacklistList.Size = UDim2.new(1, -10, 0.5, -18)
