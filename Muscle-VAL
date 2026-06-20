@@ -201,7 +201,7 @@ local function startAutoKill()
     State.AttackConnection = RunService.Heartbeat:Connect(function()
         if not State.AutoKillEnabled or not LocalPlayer.Character then return end
         
-        local speed = State.AtaqueRapido and 0.01 or 0.03
+        local speed = State.AtaqueRapido and 0.02 or 0.03
         if tick() - State.AttackTick < speed then return end
         State.AttackTick = tick()
 
@@ -254,7 +254,7 @@ local function startBlacklistKill()
     BlacklistConnection = RunService.Heartbeat:Connect(function()
         if not LocalPlayer.Character then return end
         
-        local speed = State.AtaqueRapido and 0.01 or 0.03
+        local speed = State.AtaqueRapido and 0.02 or 0.03
         if tick() - BlacklistAttackTick < speed then return end
         BlacklistAttackTick = tick()
         
@@ -660,7 +660,7 @@ local btnRefresh = createButton(col1, "Actualizar Listas", 0, Color3.fromRGB(45,
     cy3 = cy3 + 35
     createSwitch(col3, "Notificar Blacklist", cy3, "Notificaciones")
     cy3 = cy3 + 35
-    createSwitch(col3, "Ataque Rápido (0.01)", cy3, "AtaqueRapido")
+    createSwitch(col3, "Ataque Rápido (0.02)", cy3, "AtaqueRapido")
     cy3 = cy3 + 35
     createSwitch(col3, "Whitelist Amigos",   cy3, "FriendsWhitelist")
 cy3 = cy3 + 35
