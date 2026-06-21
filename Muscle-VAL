@@ -356,13 +356,13 @@ local TeleportService = game:GetService("TeleportService")
 
 task.spawn(function()
     while task.wait(10) do -- Revisa cada 10 segundos para no saturar el juego
-        -- Si el botón está activo y estás solo en el servidor (1 jugador)
-        if State.NewServer and #Players:GetPlayers() <= 1 then
+        -- Si el botón está activo y hay 5 jugadores o menos en tu servidor
+        if State.NewServer and #Players:GetPlayers() <= 5 then
             
             -- Avisamos en pantalla
             StarterGui:SetCore("SendNotification", {
-                Title = "¡Servidor Vacío!",
-                Text = "Buscando un nuevo servidor con jugadores...",
+                Title = "¡Pocos Jugadores!",
+                Text = "Buscando un servidor más lleno...",
                 Duration = 5
             })
             
@@ -374,8 +374,8 @@ task.spawn(function()
                 
                 if data and data.data then
                     for _, server in ipairs(data.data) do
-                        -- Elegir un servidor que NO sea este, que TENGA gente, y que NO esté lleno
-                        if server.id ~= game.JobId and server.playing > 0 and server.playing < server.maxPlayers then
+                        -- Elegir un servidor diferente que tenga MÁS de 5 personas y no esté lleno
+                        if server.id ~= game.JobId and server.playing > 5 and server.playing < server.maxPlayers then
                             TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id, LocalPlayer)
                             break
                         end
@@ -388,6 +388,7 @@ task.spawn(function()
         end
     end
 end)
+
 
 
 -- =====================================================================
