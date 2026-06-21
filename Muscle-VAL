@@ -205,32 +205,36 @@ local function startAutoKill()
         if tick() - State.AttackTick < speed then return end
         State.AttackTick = tick()
 
-        equipPunch()
+        if not equipPunch() then return end
+        
         local myChar = LocalPlayer.Character
         local leftHand = myChar:FindFirstChild("LeftHand")
         local rightHand = myChar:FindFirstChild("RightHand")
 
         if not leftHand and not rightHand then return end
 
-        for _, target in ipairs(getValidTargets()) do
-            if target.Humanoid and target.Humanoid.Health > 0 then
+        local targets = getValidTargets()
+        if #targets == 0 then return end -- Si no hay a quién pegarle, no hace nada
+
+        -- MEJORA 1: Enviamos la señal al servidor UNA SOLA VEZ por cada ciclo
+        pcall(function()
+            LocalPlayer.muscleEvent:FireServer("punch", "leftHand")
+            LocalPlayer.muscleEvent:FireServer("punch", "rightHand")
+        end)
+
+        -- Atacamos a todos simultáneamente sin pausas (MEJORA 2)
+        for _, target in ipairs(targets) do
+            if leftHand then
                 pcall(function()
-                    LocalPlayer.muscleEvent:FireServer("punch", "leftHand")
-                    LocalPlayer.muscleEvent:FireServer("punch", "rightHand")
+                    firetouchinterest(leftHand, target.RootPart, 0)
+                    firetouchinterest(leftHand, target.RootPart, 1)
                 end)
-                if leftHand then
-                    pcall(function()
-                        firetouchinterest(leftHand, target.RootPart, 0)
-                        firetouchinterest(leftHand, target.RootPart, 1)
-                    end)
-                end
-                if rightHand then
-                    pcall(function()
-                        firetouchinterest(rightHand, target.RootPart, 0)
-                        firetouchinterest(rightHand, target.RootPart, 1)
-                    end)
-                end
-                task.wait(0.01)
+            end
+            if rightHand then
+                pcall(function()
+                    firetouchinterest(rightHand, target.RootPart, 0)
+                    firetouchinterest(rightHand, target.RootPart, 1)
+                end)
             end
         end
     end)
@@ -258,6 +262,8 @@ local function startBlacklistKill()
         if tick() - BlacklistAttackTick < speed then return end
         BlacklistAttackTick = tick()
         
+        local hasBlacklistedTarget = false
+        
         for _, player in pairs(Players:GetPlayers()) do
             if player ~= LocalPlayer and isBlacklisted(player) then
                 
@@ -272,25 +278,38 @@ local function startBlacklistKill()
 
                 local char = player.Character
                 if char and char:FindFirstChild("HumanoidRootPart") and char.Humanoid.Health > 0 then
-                    equipPunch()
-                    pcall(function()
-                        LocalPlayer.muscleEvent:FireServer("punch", "leftHand")
-                        LocalPlayer.muscleEvent:FireServer("punch", "rightHand")
+                    hasBlacklistedTarget = true
+                    
+                    if equipPunch() then
                         local myChar = LocalPlayer.Character
-                        if myChar:FindFirstChild("LeftHand") then
-                            firetouchinterest(myChar.LeftHand, char.HumanoidRootPart, 0)
-                            firetouchinterest(myChar.LeftHand, char.HumanoidRootPart, 1)
-                        end
-                        if myChar:FindFirstChild("RightHand") then
-                            firetouchinterest(myChar.RightHand, char.HumanoidRootPart, 0)
-                            firetouchinterest(myChar.RightHand, char.HumanoidRootPart, 1)
-                        end
-                    end)
+                        local lHand = myChar:FindFirstChild("LeftHand")
+                        local rHand = myChar:FindFirstChild("RightHand")
+                        
+                        pcall(function()
+                            if lHand then
+                                firetouchinterest(lHand, char.HumanoidRootPart, 0)
+                                firetouchinterest(lHand, char.HumanoidRootPart, 1)
+                            end
+                            if rHand then
+                                firetouchinterest(rHand, char.HumanoidRootPart, 0)
+                                firetouchinterest(rHand, char.HumanoidRootPart, 1)
+                            end
+                        end)
+                    end
                 end
             end
         end
+        
+        -- Igual que arriba, solo disparamos el evento de servidor si realmente hay alguien a quien pegarle
+        if hasBlacklistedTarget then
+            pcall(function()
+                LocalPlayer.muscleEvent:FireServer("punch", "leftHand")
+                LocalPlayer.muscleEvent:FireServer("punch", "rightHand")
+            end)
+        end
     end)
 end
+
 
 -- ================== SISTEMA DE CÁMARA Y ANTI-AFK ==================
 local function updateSpectate()
