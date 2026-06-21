@@ -896,11 +896,15 @@ cy3 = cy3 + 35
         startAutoKill()
     end
 
-    task.spawn(function()
-        while task.wait(5) do
-            if mainFrame.Visible then updatePlayerList() end
-        end
+        -- Reemplazo del bucle de 5 segundos. Ahora solo gasta memoria cuando es necesario.
+    Players.PlayerAdded:Connect(function()
+        if mainFrame.Visible then updatePlayerList() end
     end)
+
+    Players.PlayerRemoving:Connect(function()
+        if mainFrame.Visible then updatePlayerList() end
+    end)
+
 
     print("=== HUB VAL-26P V2 (3 COLUMNAS) CARGADO ===")
 else
