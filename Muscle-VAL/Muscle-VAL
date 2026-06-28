@@ -399,7 +399,7 @@ task.spawn(function()
 
     for _, plr in ipairs(Players:GetPlayers()) do
         if plr ~= LocalPlayer and plr.Character then onCharacterAdded(plr.Character) end
-        plr.CharacterAdded:Connect(function(char) if plr ~= LocalPlayer then onCharacterAdded(char) end end)
+        plr.CharacterAdded:Connect(function(char) if plr ~= LocalPlayer then onCharacterAdded(char) end
     end
     Players.PlayerAdded:Connect(function(plr)
         plr.CharacterAdded:Connect(function(char) if plr ~= LocalPlayer then onCharacterAdded(char) end 
