@@ -784,7 +784,7 @@ if isAuthorized() then
            saveLists()
        end,
     })
-end)
+end
 
 else
     local alertGui = Instance.new("ScreenGui")
