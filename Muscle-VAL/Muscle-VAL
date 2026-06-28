@@ -785,7 +785,7 @@ if isAuthorized() then
        end,
     })
 end
-
+end)
 else
     local alertGui = Instance.new("ScreenGui")
     alertGui.Name = "AccessDenied"
