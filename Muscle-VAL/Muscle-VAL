@@ -787,7 +787,7 @@ if isAuthorized() then
     })
 end
 
-
+else
     local alertGui = Instance.new("ScreenGui")
     alertGui.Name = "AccessDenied"
     alertGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
