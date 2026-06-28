@@ -402,7 +402,8 @@ task.spawn(function()
         plr.CharacterAdded:Connect(function(char) if plr ~= LocalPlayer then onCharacterAdded(char) end end)
     end
     Players.PlayerAdded:Connect(function(plr)
-        plr.CharacterAdded:Connect(function(char) if plr ~= LocalPlayer then onCharacterAdded(char) end end)
+        plr.CharacterAdded:Connect(function(char) if plr ~= LocalPlayer then onCharacterAdded(char) end 
+        end)
     end)
     
     
