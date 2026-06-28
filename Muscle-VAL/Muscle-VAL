@@ -330,7 +330,7 @@ task.spawn(function()
         billboard.StudsOffset = Vector3.new(0, 3.5, 0)
         billboard.AlwaysOnTop = true
         billboard.MaxDistance = 500
-        billboard.Enabled = State.VerVida -- Empieza según el botón
+        billboard.Enabled = State.VerVida
         billboard.Parent = character.Head
 
         local frame = Instance.new("Frame")
@@ -399,12 +399,13 @@ task.spawn(function()
 
     for _, plr in ipairs(Players:GetPlayers()) do
         if plr ~= LocalPlayer and plr.Character then onCharacterAdded(plr.Character) end
-        plr.CharacterAdded:Connect(function(char) if plr ~= LocalPlayer then onCharacterAdded(char) end
+        plr.CharacterAdded:Connect(function(char) if plr ~= LocalPlayer then onCharacterAdded(char) end end)
     end
     Players.PlayerAdded:Connect(function(plr)
-        plr.CharacterAdded:Connect(function(char) if plr ~= LocalPlayer then onCharacterAdded(char) end 
-        end)
+        plr.CharacterAdded:Connect(function(char) if plr ~= LocalPlayer then onCharacterAdded(char) end end)
     end)
+end) 
+ 
     
     
 
