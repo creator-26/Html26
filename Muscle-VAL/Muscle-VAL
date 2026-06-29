@@ -514,12 +514,8 @@ local function getPlayerList()
     local list = {}
     for _, player in ipairs(Players:GetPlayers()) do
         if player ~= LocalPlayer then
-            local entry
-            if player.DisplayName ~= player.Name then
-                entry = player.Name .. " | " .. player.DisplayName
-            else
-                entry = player.Name
-            end
+            -- Formato exacto de la imagen: Apodo | Usuario
+            local entry = player.DisplayName .. " | " .. player.Name
             table.insert(list, entry)
         end
     end
@@ -528,8 +524,7 @@ local function getPlayerList()
     end
     return list
 end
-
--- =====================================================================
+ =====================================================================
 -- 5. INTERFAZ GRÁFICA (RAYFIELD)
 -- =====================================================================
 if isAuthorized() then
@@ -585,19 +580,40 @@ if isAuthorized() then
 
     local TargetLabel = TabCombate:CreateLabel("🎯 Target Actual: Ninguno")
 
-    TabCombate:CreateInput({
-       Name = "Buscar Target Individual",
-       PlaceholderText = "Escribe el nombre del jugador...",
-       RemoveTextAfterFocusLost = true,
-       Callback = function(Text)
-           if Text ~= "" then
-               State.TargetPlayerName = Text
+        -- Menú desplegable interactivo para seleccionar Target
+    local TargetDropdown = TabCombate:CreateDropdown({
+       Name = "🎯 Seleccionar Target",
+       Options = getPlayerList(),
+       CurrentOption = {""},
+       MultipleOptions = false,
+       Flag = "Dropdown_Target",
+       Callback = function(Option)
+           local selected = type(Option) == "table" and Option[1] or Option
+           
+           if selected and selected ~= "" and selected ~= "Sin jugadores en el servidor" then
+               -- Separar el texto para obtener solo el Usuario (la parte derecha del ' | ')
+               local username = selected
+               if string.find(selected, " | ") then
+                   username = string.split(selected, " | ")[2]
+               end
+               
+               -- Asignamos el Target y apagamos el "Atacar a Todos"
+               State.TargetPlayerName = username
                State.AutoKillAll = false
                ModoToggle:Set(false) 
-               TargetLabel:Set("🎯 Target Actual: " .. Text)
+               TargetLabel:Set("🎯 Target Actual: " .. username)
            end
        end,
     })
+
+    -- Botón para refrescar la lista por si entran nuevos jugadores
+    TabCombate:CreateButton({
+       Name = "🔄 Refrescar Lista de Jugadores",
+       Callback = function()
+           TargetDropdown:Refresh(getPlayerList(), {""})
+       end,
+    })
+
 
     TabCombate:CreateButton({
        Name = "❌ Limpiar Target (Volver a Todos)",
