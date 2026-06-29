@@ -578,11 +578,11 @@ if isAuthorized() then
        end,
     })
 
-    local TargetLabel = TabCombate:CreateLabel("🎯 Target Actual: Ninguno")
+    local TargetLabel = TabCombate:CreateLabel("🎯 Jugador Actual: Ninguno")
 
-        -- Menú desplegable interactivo para seleccionar Target
+        -- Menú desplegable interactivo para seleccionar Jugador
     local TargetDropdown = TabCombate:CreateDropdown({
-       Name = "🎯 Seleccionar Target",
+       Name = "🎯 Seleccionar Jugador",
        Options = getPlayerList(),
        CurrentOption = {""},
        MultipleOptions = false,
@@ -601,7 +601,7 @@ if isAuthorized() then
                State.TargetPlayerName = username
                State.AutoKillAll = false
                ModoToggle:Set(false) 
-               TargetLabel:Set("🎯 Target Actual: " .. username)
+               TargetLabel:Set("🎯 Jugador Actual: " .. username)
            end
        end,
     })
@@ -616,12 +616,12 @@ if isAuthorized() then
 
 
     TabCombate:CreateButton({
-       Name = "❌ Limpiar Target (Volver a Todos)",
+       Name = "❌ Limpiar Jugador (Volver a Todos)",
        Callback = function()
            State.TargetPlayerName = ""
            State.AutoKillAll = true
            ModoToggle:Set(true) 
-           TargetLabel:Set("🎯 Target Actual: Todos")
+           TargetLabel:Set("🎯 Jugador Actual: Todos")
            
            -- Restaura tu cámara automáticamente
            State.SpectatingPlayer = nil
@@ -633,7 +633,7 @@ if isAuthorized() then
     })
 
     TabCombate:CreateToggle({
-       Name = "👁️ Espectear al Target",
+       Name = "👁️ Espectear al Jugador",
        CurrentValue = false,
        Flag = "Toggle_Spectate",
        Callback = function(Value)
@@ -694,7 +694,7 @@ if isAuthorized() then
 
     -- 3. Lista visual interactiva para ver y borrar
     BlacklistDropdown = TabCombate:CreateDropdown({
-       Name = "📋 Ver / Eliminar de Blacklist",
+       Name = "📋 Ver / Lista de Blacklist",
        Options = #State.Blacklist > 0 and State.Blacklist or {"(Lista vacía)"},
        CurrentOption = {""},
        MultipleOptions = false,
