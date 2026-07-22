@@ -1,0 +1,1114 @@
+-- AUTO KILL SUPREMO - VERSIÓN 3 COLUMNAS (DARK GREY & SWITCHES)
+-- Hub 640x320 | 3 Columnas | Interruptores funcionales | Diseño Profesional
+
+-- =====================================================================
+-- 1. SERVICIOS Y VARIABLES GLOBALES
+-- =====================================================================
+local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
+local StarterGui = game:GetService("StarterGui")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local VirtualUser = game:GetService("VirtualUser")
+local Camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+
+local State = {
+    AutoKillEnabled = false,
+    AutoKillAll = true,
+    TargetPlayerName = "",
+    Whitelist = {},
+    Blacklist = {},
+    SpectatingPlayer = nil,
+    AttackConnection = nil,
+    SpectateConnection = nil,
+    AttackTick = tick(),
+    
+    -- Nuevas variables para los interruptores de la 3ra columna
+    AntiAFK = true,
+    Notificaciones = false,
+    AtaqueRapido = false,
+    FriendsWhitelist = false,
+    LockPosition = false,
+    SavedPosition = nil,
+    NewServer = false,
+    VerVida = false,
+
+    -- Paleta de colores elegante y profesional (Tonos Grises)
+    Theme = {
+        
+    }
+}
+
+--=====================================================================
+-- 2. SISTEMA DE SEGURIDAD (ENLAZADO AL PANEL VERCEL)
+-- =====================================================================
+local function isAuthorized()
+    local myName = LocalPlayer.Name:lower()
+
+    -- Enlace encriptado en HEX: https://val-panel.vercel.app/api/raw
+    local p = {
+        "68747470733A2F2F",                         -- https://
+        "76616C2D70616E656C2E76657263656C2E617070", -- val-panel.vercel.app
+        "2F6170692F726177"                          -- /api/raw
+    }
+
+    local link = ""
+    for _, segment in ipairs(p) do
+        for i = 1, #segment, 2 do
+            link = link .. string.char(tonumber(segment:sub(i, i + 1), 16))
+        end
+    end
+
+    local success, content = pcall(function()
+        return game:HttpGet(link)
+    end)
+
+    if success and content then
+        for line in content:gmatch("[^\r\n]+") do
+            if line:lower():match("^%s*(.-)%s*$") == myName then
+                return true
+            end
+        end
+    end
+
+    return false
+end
+
+
+-- =====================================================================
+-- 3. SISTEMA DE GUARDADO LOCAL (JSON)
+-- =====================================================================
+local function saveLists()
+    if writefile then
+        pcall(function()
+            writefile("AutoKill_Whitelist.json", HttpService:JSONEncode(State.Whitelist))
+            writefile("AutoKill_Blacklist.json", HttpService:JSONEncode(State.Blacklist))
+            
+            -- NUEVO: Guardar el estado de los botones
+            local settings = {
+                AutoKillEnabled = State.AutoKillEnabled,
+                AutoKillAll = State.AutoKillAll,
+                AntiAFK = State.AntiAFK,
+                Notificaciones = State.Notificaciones,
+                AtaqueRapido = State.AtaqueRapido,
+                FriendsWhitelist = State.FriendsWhitelist,
+                LockPosition = State.LockPosition,
+                NewServer = State.NewServer,
+                VerVida = State.VerVida
+            }
+            writefile("AutoKill_Settings.json", HttpService:JSONEncode(settings))
+        end)
+    end
+end
+
+local function loadLists()
+    if isfile and readfile then
+        pcall(function()
+            if isfile("AutoKill_Whitelist.json") then
+                State.Whitelist = HttpService:JSONDecode(readfile("AutoKill_Whitelist.json")) or {}
+            end
+            if isfile("AutoKill_Blacklist.json") then
+                State.Blacklist = HttpService:JSONDecode(readfile("AutoKill_Blacklist.json")) or {}
+            end
+            
+            -- NUEVO: Cargar el estado de los botones
+            if isfile("AutoKill_Settings.json") then
+                local savedSettings = HttpService:JSONDecode(readfile("AutoKill_Settings.json"))
+                if savedSettings then
+                    if savedSettings.AutoKillEnabled ~= nil then State.AutoKillEnabled = savedSettings.AutoKillEnabled end
+                    if savedSettings.AutoKillAll ~= nil then State.AutoKillAll = savedSettings.AutoKillAll end
+                    if savedSettings.AntiAFK ~= nil then State.AntiAFK = savedSettings.AntiAFK end
+                    if savedSettings.Notificaciones ~= nil then State.Notificaciones = savedSettings.Notificaciones end
+                    if savedSettings.AtaqueRapido ~= nil then State.AtaqueRapido = savedSettings.AtaqueRapido end
+                    if savedSettings.FriendsWhitelist ~= nil then State.FriendsWhitelist = savedSettings.FriendsWhitelist end
+                    if savedSettings.LockPosition ~= nil then State.LockPosition = savedSettings.LockPosition end
+                    if savedSettings.NewServer ~= nil then State.NewServer = savedSettings.NewServer end
+                    if savedSettings.VerVida ~= nil then State.VerVida = savedSettings.VerVida end
+                end
+            end
+        end)
+    end
+end
+loadLists()
+
+
+-- =====================================================================
+-- 4. LÓGICA DE OBJETIVOS Y COMBATE
+-- =====================================================================
+local function isWhitelisted(plr)
+    -- Si el botón está activado, verifica si son amigos en Roblox
+    if State.FriendsWhitelist then
+        -- pcall para evitar errores si el servidor de Roblox tarda en responder
+        local success, isFriend = pcall(function()
+            return LocalPlayer:IsFriendsWith(plr.UserId)
+        end)
+        if success and isFriend then return true end
+    end
+
+    -- Lógica normal: revisa la lista escrita en el Hub
+    for _, name in ipairs(State.Whitelist) do
+        if plr.Name:lower() == name:lower() then return true end
+    end
+    return false
+end
+
+
+local function isBlacklisted(plr)
+    for _, name in ipairs(State.Blacklist) do
+        -- Compara si lo que escribiste coincide con el nombre real O con el apodo
+        if plr.Name:lower() == name:lower() or plr.DisplayName:lower() == name:lower() then 
+            return true 
+        end
+    end
+    return false
+end
+
+
+local function equipPunch()
+    if not LocalPlayer.Character then return false end
+    local char = LocalPlayer.Character
+    if char:FindFirstChild("Punch") then return true end
+    local backpack = LocalPlayer.Backpack
+    local punch = backpack:FindFirstChild("Punch")
+    if punch then
+        punch.Parent = char
+        return true
+    end
+    return false
+end
+
+local function getValidTargets()
+    local targets = {}
+    local targetAdded = {}
+
+    local function addTarget(player)
+        if targetAdded[player] then return end
+        local char = player.Character
+        if char then
+            local humanoid = char:FindFirstChild("Humanoid")
+            local root = char:FindFirstChild("HumanoidRootPart")
+            if humanoid and root and humanoid.Health > 0 then
+                targetAdded[player] = true
+                table.insert(targets, { Player = player, Character = char, Humanoid = humanoid, RootPart = root })
+            end
+        end
+    end
+
+    if State.AutoKillAll then
+        for _, player in pairs(Players:GetPlayers()) do
+            if player == LocalPlayer or isWhitelisted(player) then continue end
+            addTarget(player)
+        end
+    elseif State.TargetPlayerName ~= "" then
+        for _, player in pairs(Players:GetPlayers()) do
+            if player == LocalPlayer or not player.Name:lower():find(State.TargetPlayerName:lower()) then continue end
+            addTarget(player)
+            break
+        end
+    end
+
+    return targets
+end
+
+-- ================== AUTO KILL PRINCIPAL ==================
+local function startAutoKill()
+    if State.AttackConnection then State.AttackConnection:Disconnect() end
+
+    State.AttackConnection = RunService.Heartbeat:Connect(function()
+        if not State.AutoKillEnabled or not LocalPlayer.Character then return end
+        
+        local speed = State.AtaqueRapido and 0.01 or 0.03
+        if tick() - State.AttackTick < speed then return end
+        State.AttackTick = tick()
+
+        if not equipPunch() then return end
+        
+        local myChar = LocalPlayer.Character
+        local leftHand = myChar:FindFirstChild("LeftHand")
+        local rightHand = myChar:FindFirstChild("RightHand")
+
+        if not leftHand and not rightHand then return end
+
+        local targets = getValidTargets()
+        if #targets == 0 then return end -- Si no hay a quién pegarle, no hace nada
+
+        -- MEJORA 1: Enviamos la señal al servidor UNA SOLA VEZ por cada ciclo
+        pcall(function()
+            LocalPlayer.muscleEvent:FireServer("punch", "leftHand")
+            LocalPlayer.muscleEvent:FireServer("punch", "rightHand")
+        end)
+
+        -- Atacamos a todos simultáneamente sin pausas (MEJORA 2)
+        for _, target in ipairs(targets) do
+            if leftHand then
+                pcall(function()
+                    firetouchinterest(leftHand, target.RootPart, 0)
+                    firetouchinterest(leftHand, target.RootPart, 1)
+                end)
+            end
+            if rightHand then
+                pcall(function()
+                    firetouchinterest(rightHand, target.RootPart, 0)
+                    firetouchinterest(rightHand, target.RootPart, 1)
+                end)
+            end
+        end
+    end)
+end
+
+local function stopAutoKill()
+    if State.AttackConnection then
+        State.AttackConnection:Disconnect()
+        State.AttackConnection = nil
+    end
+end
+
+-- ================== BLACKLIST INDEPENDIENTE ==================
+local BlacklistConnection = nil
+local BlacklistAttackTick = tick()
+State.NotifiedPlayers = {}
+
+local function startBlacklistKill()
+    if BlacklistConnection then BlacklistConnection:Disconnect() end
+    
+    BlacklistConnection = RunService.Heartbeat:Connect(function()
+        if not LocalPlayer.Character then return end
+        
+        local speed = State.AtaqueRapido and 0.01 or 0.03
+        if tick() - BlacklistAttackTick < speed then return end
+        BlacklistAttackTick = tick()
+        
+        local hasBlacklistedTarget = false
+        
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and isBlacklisted(player) then
+                
+                                if State.Notificaciones and not State.NotifiedPlayers[player.UserId] then
+                    State.NotifiedPlayers[player.UserId] = true
+                    
+   -- Usamos pcall porque StarterGui falla a veces si el juego da un tirón de lag
+                    pcall(function()
+                        StarterGui:SetCore("SendNotification", {
+                            Title = "¡Blacklist Detectada!",
+                            Text = "Atacando a: " .. player.DisplayName,
+                            Duration = 3
+                        })
+                    end)
+                end
+                
+
+                local char = player.Character
+                if char and char:FindFirstChild("HumanoidRootPart") and char.Humanoid.Health > 0 then
+                    hasBlacklistedTarget = true
+                    
+                    if equipPunch() then
+                        local myChar = LocalPlayer.Character
+                        local lHand = myChar:FindFirstChild("LeftHand")
+                        local rHand = myChar:FindFirstChild("RightHand")
+                        
+                        pcall(function()
+                            if lHand then
+                                firetouchinterest(lHand, char.HumanoidRootPart, 0)
+                                firetouchinterest(lHand, char.HumanoidRootPart, 1)
+                            end
+                            if rHand then
+                                firetouchinterest(rHand, char.HumanoidRootPart, 0)
+                                firetouchinterest(rHand, char.HumanoidRootPart, 1)
+                            end
+                        end)
+                    end
+                end
+            end
+        end
+        
+        -- Igual que arriba, solo disparamos el evento de servidor si realmente hay alguien a quien pegarle
+        if hasBlacklistedTarget then
+            pcall(function()
+                LocalPlayer.muscleEvent:FireServer("punch", "leftHand")
+                LocalPlayer.muscleEvent:FireServer("punch", "rightHand")
+            end)
+        end
+    end)
+end
+
+-- ================== SISTEMA DE ESP (VER VIDA) ==================
+task.spawn(function()
+    repeat task.wait() until game:IsLoaded()
+    task.wait(1)
+
+    local Players = game:GetService("Players")
+
+    -- 1. Sistema de formato de números
+    local suffixes = {
+        {"Qi", 1e18}, {"Qa", 1e15}, {"T",  1e12},
+        {"B",  1e9},  {"M",  1e6},  {"K",  1e3}
+    }
+
+    local function formatNumber(n)
+        if type(n) ~= "number" then return "0" end
+        for _, s in ipairs(suffixes) do
+            local name, val = s[1], s[2]
+            if n >= val then
+                return string.format("%.2f%s", n / val, name)
+            end
+        end
+        return tostring(math.floor(n))
+    end
+
+    -- Función auxiliar para crear textos con bordes optimizados
+    local function createThickLabel(name, color, order, parent)
+        local label = Instance.new("TextLabel")
+        label.Name = name
+        -- Usamos Scale en Y (0.33) para que las 3 líneas se dividan el 100% del cuadro
+        label.Size = UDim2.new(1, 0, 0.33, 0) 
+        label.BackgroundTransparency = 1
+        label.Font = Enum.Font.GothamBlack
+        label.TextScaled = true -- CLAVE: Esto hace que se quede fijo y escale con la cámara
+        label.TextColor3 = color
+        label.LayoutOrder = order
+        label.Parent = parent
+
+        -- Optimización de tu script antiguo: Límite de tamaño de letra
+        local textConstraint = Instance.new("UITextSizeConstraint")
+        textConstraint.MaxTextSize = 34 -- Evita que sea inmenso de cerca
+        textConstraint.MinTextSize = 30  -- Evita que desaparezca de lejos
+        textConstraint.Parent = label
+
+        local stroke = Instance.new("UIStroke")
+        stroke.Thickness = 2.2
+        stroke.Color = Color3.fromRGB(0, 0, 0)
+        stroke.Transparency = 0
+        stroke.Parent = label
+
+        return label
+    end
+
+    -- 2. Función principal para crear el ESP
+    local function applyCustomESP(player)
+        
+        local function onCharacterAdded(character)
+            -- Optimización: Tolerancia de 5 segundos para que cargue la cabeza
+            local head = character:WaitForChild("Head", 5)
+            local humanoid = character:WaitForChild("Humanoid", 5)
+            if not head or not humanoid then return end
+
+            local oldEsp = head:FindFirstChild("VAL_ESP")
+            if oldEsp then oldEsp:Destroy() end
+
+            local billboard = Instance.new("BillboardGui")
+            billboard.Name = "VAL_ESP"
+            -- CAMBIO: Usamos Scale
+            billboard.Size = UDim2.new(8.5, 0, 4, 0) 
+            billboard.StudsOffset = Vector3.new(0, 6, 0) -- Fijo arriba de la cabeza
+            billboard.MaxDistance = 500 -- Optimización del antiguo script
+            billboard.AlwaysOnTop = true
+            
+            -- Conexión con tu menú
+            if State and State.VerVida ~= nil then
+                billboard.Enabled = State.VerVida
+            end
+            
+            billboard.Parent = head
+
+            local container = Instance.new("Frame")
+            container.Size = UDim2.new(1, 0, 1, 0)
+            container.BackgroundTransparency = 1
+            container.Parent = billboard
+
+            local listLayout = Instance.new("UIListLayout")
+            listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+            listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+            listLayout.Parent = container
+
+            -- [1] NOMBRE
+            local nameColor = Color3.fromRGB(255, 230, 40) 
+            local nameLabel = createThickLabel("NameLabel", nameColor, 1, container)
+            nameLabel.Text = player.DisplayName
+
+            -- [2] HP
+            local hpColor = Color3.fromRGB(255, 255, 255)
+            local hpLabel = createThickLabel("HpLabel", hpColor, 2, container)
+
+            -- [3] DMG (10%)
+            local dmgColor = Color3.fromRGB(255, 65, 65)
+            local dmgLabel = createThickLabel("DmgLabel", dmgColor, 3, container)
+
+            -- Actualización
+            local leaderstats = player:WaitForChild("leaderstats", 5)
+            local strengthStat = leaderstats and leaderstats:FindFirstChild("Strength")
+
+            local function updateLabels()
+                if humanoid and humanoid.Parent then
+                    hpLabel.Text = "HP: " .. formatNumber(humanoid.Health) .. "/" .. formatNumber(humanoid.MaxHealth)
+                end
+                
+                if strengthStat then
+                    local strength = strengthStat.Value
+                    local normalDmg = strength * 0.1
+                    
+                    dmgLabel.Text = "DMG: " .. formatNumber(normalDmg)
+                else
+                    dmgLabel.Text = "DMG: 0"
+                end
+            end
+
+            humanoid.HealthChanged:Connect(updateLabels)
+            if strengthStat then
+                strengthStat.Changed:Connect(updateLabels)
+            end
+            
+            updateLabels()
+        end
+
+        if player.Character then
+            onCharacterAdded(player.Character)
+        end
+        player.CharacterAdded:Connect(onCharacterAdded)
+    end
+
+    -- 3. Aplicar a TODOS los jugadores actuales (Garantiza que te aparezca a ti)
+    for _, p in ipairs(Players:GetPlayers()) do
+        applyCustomESP(p)
+    end
+
+    -- Aplicar a los jugadores que entren después
+    Players.PlayerAdded:Connect(applyCustomESP)
+    -- ==============================================================
+    -- 4. BUCLE VIGILANTE PARA EL INTERRUPTOR (¡LA SOLUCIÓN!)
+    -- ==============================================================
+    task.spawn(function()
+        while task.wait(0.2) do -- Revisa el interruptor 5 veces por segundo
+            if State and State.VerVida ~= nil then
+                for _, p in ipairs(Players:GetPlayers()) do
+                    if p.Character and p.Character:FindFirstChild("Head") then
+                        local esp = p.Character.Head:FindFirstChild("VAL_ESP")
+                        if esp then
+                            esp.Enabled = State.VerVida -- Lo prende o apaga en tiempo real
+                        end
+                    end
+                end
+            end
+        end
+    end)
+end)
+
+                
+                       
+-- ================== SISTEMA DE CÁMARA Y ANTI-AFK ==================
+local function updateSpectate()
+    if State.SpectateConnection then State.SpectateConnection:Disconnect() end
+    State.SpectateConnection = RunService.Heartbeat:Connect(function()
+        if State.SpectatingPlayer and State.SpectatingPlayer ~= LocalPlayer then
+            if State.SpectatingPlayer.Character then
+                local humanoid = State.SpectatingPlayer.Character:FindFirstChild("Humanoid")
+                -- Se usa workspace.CurrentCamera en vivo, no variables cacheadas
+                if humanoid and workspace.CurrentCamera.CameraSubject ~= humanoid then
+                    workspace.CurrentCamera.CameraSubject = humanoid
+                end
+            end
+        end
+    end)
+end
+
+local function stopSpectate()
+    -- 1. DESCONECTAR EL BUCLE (Esto evita el lag y la fuga de memoria)
+    if State.SpectateConnection then
+        State.SpectateConnection:Disconnect()
+        State.SpectateConnection = nil
+    end
+    
+    -- 2. Limpiar el objetivo
+    State.SpectatingPlayer = nil
+    
+    -- 3. Restaurar tu cámara
+    if LocalPlayer.Character then
+        local hum = LocalPlayer.Character:FindFirstChild("Humanoid")
+        if hum then workspace.CurrentCamera.CameraSubject = hum end
+    end
+end
+
+
+
+LocalPlayer.Idled:Connect(function()
+    if State.AntiAFK then
+        VirtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+        task.wait(1)
+        VirtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+    end
+end)
+
+-- ================== SISTEMA DE AUTO NEW SERVER ==================
+local TeleportService = game:GetService("TeleportService")
+
+task.spawn(function()
+    while task.wait(10) do -- Revisa cada 10 segundos para no saturar el juego
+        -- Si el botón está activo y hay 5 jugadores o menos en tu servidor
+        if State.NewServer and #Players:GetPlayers() <= 5 then
+            
+            -- Avisamos en pantalla
+            StarterGui:SetCore("SendNotification", {
+                Title = "¡Pocos Jugadores!",
+                Text = "Buscando un servidor más lleno...",
+                Duration = 5
+            })
+            
+            pcall(function()
+                -- Buscamos la lista de servidores de este juego usando la API de Roblox
+                local url = "https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Desc&limit=100"
+                local response = game:HttpGet(url)
+                local data = HttpService:JSONDecode(response)
+                
+                if data and data.data then
+                    for _, server in ipairs(data.data) do
+                        -- Elegir un servidor diferente que tenga MÁS de 5 personas y no esté lleno
+                        if server.id ~= game.JobId and server.playing > 5 and server.playing < server.maxPlayers then
+                            TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id, LocalPlayer)
+                            break
+                        end
+                    end
+                end
+            end)
+            
+            -- Esperamos un poco para darle tiempo a teletransportarse
+            task.wait(15)
+        end
+    end
+end)
+
+-- ================== HELPER: LISTA DE JUGADORES ==================
+local function getPlayerList()
+    local list = {}
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            -- Formato exacto de la imagen: Apodo | Usuario
+            local entry = player.DisplayName .. " | " .. player.Name
+            table.insert(list, entry)
+        end
+    end
+    if #list == 0 then
+        table.insert(list, "Sin jugadores en el servidor")
+    end
+    return list
+end
+
+local function aplicarAntiKB(character)
+    if not character then return end
+    local rootPart = character:WaitForChild("HumanoidRootPart", 5)
+    
+    if rootPart then
+        local old = rootPart:FindFirstChild("AntiKB_Force")
+        if old then old:Destroy() end
+        
+        local bodyVelocity = Instance.new("BodyVelocity")
+        bodyVelocity.Name = "AntiKB_Force"
+        bodyVelocity.MaxForce = Vector3.new(100000, 0, 100000)
+        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+        bodyVelocity.P = 1250
+        bodyVelocity.Parent = rootPart
+    end
+end
+
+
+-- Escucha cuando tu personaje renace para actualizar las físicas
+LocalPlayer.CharacterAdded:Connect(function(newCharacter)
+    -- 1. Si tenías el Lock Position activo, actualizamos la posición al nuevo cuerpo
+    if State.LockPosition then
+        -- Le damos una milésima de segundo para que cargue la física antes de congelarlo
+        task.wait(0.1)
+        if newCharacter:FindFirstChild("HumanoidRootPart") then
+            State.SavedPosition = newCharacter.HumanoidRootPart.CFrame
+        end
+    end
+
+    -- 2. Si tenías el Anti Knockback activo, se lo volvemos a inyectar al nuevo cuerpo
+    if State.AntiKnockbackGlobal then
+        aplicarAntiKB(newCharacter)
+    end
+end)
+
+
+
+-- ===================================================================
+    -- 5. INTERFAZ GRÁFICA (RAYFIELD GEN 2)
+    -- =====================================================================
+if isAuthorized() then
+    
+    -- 🔥 ENCENDER MOTOR DE BLACKLIST EN SEGUNDO PLANO 🔥
+    startBlacklistKill()
+
+    -- Importar Rayfield Gen 2
+    local enlaceRayfield = "https://sirius.menu/gen2"
+    
+    local success, response = pcall(function()
+        return game:HttpGet(enlaceRayfield)
+    end)
+
+    if not success or not response then
+        success, response = pcall(function()
+            return game:HttpGet('https://sirius.menu/gen2')
+        end)
+    end
+
+    local cargarLibreria = loadstring(response)
+    
+    if type(cargarLibreria) ~= "function" then
+        StarterGui:SetCore("SendNotification", {
+            Title = "❌ Error de Red",
+            Text = "Delta fue bloqueado por Cloudflare. Intenta usar un VPN.",
+            Duration = 8
+        })
+        return 
+    end
+
+    local Rayfield = cargarLibreria()
+    
+    -- Crear Ventana Principal Gen 2
+    local Window = Rayfield:CreateWindow({
+       name = "VAL-TOP SUPREMO",
+       icon = 96664341802198,
+       loadingTitle = "Inyectando Panel Gen 2...",
+       loadingSubtitle = "Protección y Combate",
+       theme = "Default", 
+       disableRayfieldPrompts = false,
+       disableBuildWarnings = false,
+       configurationSaving = {
+          enabled = true,
+          folderName = "ValHub_Configs",
+          fileName = "Val_Save"
+       },
+       keySystem = false
+    })
+
+    -- Crear Pestañas (Tabs) Gen 2
+    local TabCombate = Window:CreateTab({ name = "🗡️ Combate", icon = 4483362458 })
+    local TabDefensa = Window:CreateTab({ name = "🛡️ Defensa", icon = 4483362458 })
+    local TabConfig = Window:CreateTab({ name = "⚙️ Configuración", icon = 4483362458 })
+
+    -- ================== PESTAÑA: COMBATE ==================
+    TabCombate:CreateToggle({
+       name = "Auto Kill Principal",
+       default = State.AutoKillEnabled,
+       flag = "Toggle_AK",
+       callback = function(value)
+           State.AutoKillEnabled = value
+           if value then startAutoKill() else stopAutoKill() end
+           saveLists()
+       end,
+    })
+
+    local ModoToggle = TabCombate:CreateToggle({
+       name = "Atacar a Todos",
+       default = State.AutoKillAll,
+       flag = "Toggle_Mode",
+       callback = function(value)
+           State.AutoKillAll = value
+           saveLists()
+       end,
+    })
+
+    local TargetLabel = TabCombate:CreateParagraph({
+    Title = "🎯 Jugador Actual",
+    Content = "Ninguno"
+})
+
+
+    local TargetDropdown = TabCombate:CreateDropdown({
+       name = "🎯 Seleccionar Jugador",
+       options = getPlayerList(),
+       default = {""},
+       multipleOptions = false,
+       flag = "Dropdown_Target",
+       callback = function(option)
+           local selected = type(option) == "table" and option[1] or option
+           
+           if selected and selected ~= "" and selected ~= "Sin jugadores en el servidor" then
+               local username = selected
+               if string.find(selected, " | ") then
+                   username = string.split(selected, " | ")[2]
+               end
+               
+               State.TargetPlayerName = username
+               State.AutoKillAll = false
+               ModoToggle:Set(false) 
+               TargetLabel:Set({
+               Title = "🎯 Jugador Actual",
+               Content = username
+})
+
+           end
+       end,
+    })
+
+    TabCombate:CreateButton({
+       name = "🔄 Refrescar Lista de Jugadores",
+       callback = function()
+           TargetDropdown:Refresh(getPlayerList(), {""})
+       end,
+    })
+
+    TabCombate:CreateButton({
+       name = "❌ Quitar Jugador Seleccionado",
+       callback = function()
+           State.TargetPlayerName = ""
+           TargetLabel:Set({
+    Title = "🎯 Jugador Actual",
+    Content = "Ninguno"
+})
+
+           
+           if TargetDropdown then
+               TargetDropdown:Set("") 
+               TargetDropdown:Refresh(getPlayerList(), {""}) 
+           end
+           
+           State.SpectatingPlayer = nil
+           if LocalPlayer.Character then
+               local hum = LocalPlayer.Character:FindFirstChild("Humanoid")
+               if hum then workspace.CurrentCamera.CameraSubject = hum end
+           end
+           
+           if SpectateToggle then
+               SpectateToggle:Set(false)
+           end
+       end,
+    })
+
+    local SpectateToggle = TabCombate:CreateToggle({
+       name = "👁️ Espectear al Jugador",
+       default = false,
+       flag = "Toggle_Spectate",
+       callback = function(value)
+           if value and State.TargetPlayerName ~= "" then
+               for _, p in pairs(Players:GetPlayers()) do
+                   if string.find(string.lower(p.Name), string.lower(State.TargetPlayerName)) then
+                       State.SpectatingPlayer = p
+                       updateSpectate()
+                       return
+                   end
+               end
+               Rayfield:Notify({title = "Aviso", content = "No se encontró al jugador.", duration = 3})
+               SpectateToggle:Set(false)
+           else
+               stopSpectate()
+           end
+       end,
+    })
+    
+    -- SISTEMA ANTI-BUGS: JUGADOR SE DESCONECTA
+    Players.PlayerRemoving:Connect(function(JugadorQueSalio)
+        if State.NotifiedPlayers and State.NotifiedPlayers[JugadorQueSalio.UserId] then
+            State.NotifiedPlayers[JugadorQueSalio.UserId] = nil
+        end
+        if JugadorQueSalio.Name == State.TargetPlayerName or JugadorQueSalio == State.SpectatingPlayer then
+            State.SpectatingPlayer = nil
+            if LocalPlayer.Character then
+                local hum = LocalPlayer.Character:FindFirstChild("Humanoid")
+                if hum then workspace.CurrentCamera.CameraSubject = hum end
+            end
+            
+            State.TargetPlayerName = ""
+            
+            pcall(function() 
+                TargetLabel:Set({
+    Title = "🎯 Jugador Actual",
+    Content = "Ninguno"
+})
+
+                if SpectateToggle then SpectateToggle:Set(false) end
+                if TargetDropdown then TargetDropdown:Refresh(getPlayerList(), {""}) end
+            end)
+            
+            StarterGui:SetCore("SendNotification", {
+                Title = "⚠️ Jugador Desconectado",
+                Text = JugadorQueSalio.DisplayName .. " abandonó el juego. Cámara restaurada.",
+                Duration = 4
+            })
+        end
+    end)
+
+    TabCombate:CreateInput({
+       name = "Añadir a Whitelist (Aliados)",
+       placeholder = "Nombre del aliado...",
+       clearTextOnFocus = true,
+       callback = function(text)
+           if text ~= "" then
+               table.insert(State.Whitelist, text)
+               saveLists()
+               Rayfield:Notify({title = "Whitelist", content = text .. " añadido.", duration = 3})
+           end
+       end,
+    })
+
+    local BlacklistDropdown 
+
+    TabCombate:CreateInput({
+       name = "Añadir a Blacklist (Enemigos)",
+       placeholder = "Nombre del enemigo...",
+       clearTextOnFocus = true,
+       callback = function(text)
+           if text ~= "" then
+               table.insert(State.Blacklist, text)
+               saveLists()
+               Rayfield:Notify({title = "Blacklist", content = text .. " añadido.", duration = 3})
+               
+               if BlacklistDropdown then
+                   local nuevasOpciones = #State.Blacklist > 0 and State.Blacklist or {"(Lista vacía)"}
+                   BlacklistDropdown:Refresh(nuevasOpciones, {""})
+               end
+           end
+       end,
+    })
+
+    BlacklistDropdown = TabCombate:CreateDropdown({
+       name = "📋 Ver / Lista de Blacklist",
+       options = #State.Blacklist > 0 and State.Blacklist or {"(Lista vacía)"},
+       default = {""},
+       multipleOptions = false,
+       flag = "Dropdown_Blacklist",
+       callback = function(option)
+           local selected = type(option) == "table" and option[1] or option
+           
+           if selected and selected ~= "" and selected ~= "(Lista vacía)" then
+               for i = #State.Blacklist, 1, -1 do
+                   if State.Blacklist[i] == selected then
+                       table.remove(State.Blacklist, i)
+                       break
+                   end
+               end
+               State.NotifiedPlayers = {}
+               saveLists()
+               Rayfield:Notify({title = "Blacklist", content = selected .. " eliminado.", duration = 3})
+               
+               local nuevasOpciones = #State.Blacklist > 0 and State.Blacklist or {"(Lista vacía)"}
+               BlacklistDropdown:Refresh(nuevasOpciones, {""})
+           end
+       end,
+    })
+
+    -- ================== PESTAÑA: DEFENSA ==================
+    TabDefensa:CreateToggle({
+       name = "Ver Vida (ESP)",
+       default = State.VerVida,
+       flag = "Toggle_ESP",
+       callback = function(value)
+           State.VerVida = value
+           saveLists()
+           for _, plr in ipairs(Players:GetPlayers()) do
+               if plr.Character then 
+                   local head = plr.Character:FindFirstChild("Head")
+                   if head then
+                       local bb = head:FindFirstChild("HP_BILLBOARD")
+                       if bb then bb.Enabled = value end
+                   end
+               end
+           end
+       end,
+    })
+
+    TabDefensa:CreateToggle({
+       name = "Lock Position (Inamovible)",
+       default = State.LockPosition,
+       flag = "Toggle_Lock",
+       callback = function(value)
+           State.LockPosition = value
+           saveLists()
+           if value then
+               local currentPos = LocalPlayer.Character.HumanoidRootPart.CFrame
+               getgenv().posLock = game:GetService("RunService").Heartbeat:Connect(function()
+                   if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                       LocalPlayer.Character.HumanoidRootPart.CFrame = currentPos
+                   end
+               end)
+               Rayfield:Notify({title = "Lock Position", content = "Posición bloqueada.", duration = 3})
+           else
+               if getgenv().posLock then
+                   getgenv().posLock:Disconnect()
+                   getgenv().posLock = nil
+               end
+               Rayfield:Notify({title = "Lock Position", content = "Eres libre de moverte.", duration = 3})
+           end
+       end,
+    })
+
+    TabDefensa:CreateToggle({
+       name = "Auto Size (nan)",
+       default = false,
+       flag = "Toggle_AutoSize",
+       callback = function(value)
+           State.AutoSize = value
+           saveLists() 
+           if value then
+               pcall(function()
+                   game:GetService("ReplicatedStorage").rEvents.changeSpeedSizeRemote:InvokeServer("changeSize", 0/0)
+               end)
+               Rayfield:Notify({title = "Auto Size", content = "Tamaño 'nan' activado.", duration = 3})
+           else
+               pcall(function()
+                   game:GetService("ReplicatedStorage").rEvents.changeSpeedSizeRemote:InvokeServer("changeSize", 1)
+               end)
+               Rayfield:Notify({title = "Auto Size", content = "Tamaño restaurado a la normalidad.", duration = 3})
+           end
+       end,
+    })
+
+    TabDefensa:CreateToggle({
+       name = "Anti Knockback",
+       default = false,
+       flag = "Toggle_AntiKB",
+       callback = function(value)
+           State.AntiKnockbackGlobal = value 
+           local char = LocalPlayer.Character
+           if value then
+               aplicarAntiKB(char)
+               Rayfield:Notify({title = "Anti Knockback", content = "Activado. Ya no saldrás volando.", duration = 3})
+           else
+               if char and char:FindFirstChild("HumanoidRootPart") then
+                   local existingVelocity = char.HumanoidRootPart:FindFirstChild("AntiKB_Force")
+                   if existingVelocity then existingVelocity:Destroy() end
+               end
+               Rayfield:Notify({title = "Anti Knockback", content = "Desactivado. Físicas normales.", duration = 3})
+           end
+       end,
+    })
+
+    -- ================== PESTAÑA: CONFIGURACIÓN ==================
+    TabConfig:CreateToggle({
+       name = "Anti-AFK Automático",
+       default = State.AntiAFK,
+       flag = "Toggle_AntiAFK",
+       callback = function(value)
+           State.AntiAFK = value
+           saveLists()
+       end,
+    })
+
+    TabConfig:CreateToggle({
+       name = "Ataque Rápido (0.01)",
+       default = State.AtaqueRapido,
+       flag = "Toggle_Fast",
+       callback = function(value)
+           State.AtaqueRapido = value
+           saveLists()
+       end,
+    })
+
+    TabConfig:CreateToggle({
+       name = "Auto Whitelist Amigos",
+       default = State.FriendsWhitelist,
+       flag = "Toggle_Friends",
+       callback = function(value)
+           State.FriendsWhitelist = value
+           saveLists()
+       end,
+    })
+
+    TabConfig:CreateToggle({
+       name = "Notificar Detección de Blacklist",
+       default = State.Notificaciones,
+       flag = "Toggle_Notif",
+       callback = function(value)
+           State.Notificaciones = value
+           saveLists()
+       end,
+    })
+
+    TabConfig:CreateToggle({
+       name = "Auto New Server (≤5 jugadores)",
+       default = State.NewServer,
+       flag = "Toggle_NewServer",
+       callback = function(value)
+           State.NewServer = value
+           saveLists()
+       end,
+    })
+    
+    
+
+else
+        -- ===================================================================
+    -- 6. SISTEMA DE SOLICITUD AUTOMÁTICA (CON DETECCIÓN DE DISPOSITIVO)
+    -- ===================================================================
+    local SUPABASE_URL = "https://guqtnlnkbernezblabfs.supabase.co"
+    local SUPABASE_KEY = "sb_publishable_OO9dKgyJmzVsm1MEvdNPoA_3ow1L0TP"
+    
+    -- DETECTAR DISPOSITIVO (Celular o PC)
+    local UserInputService = game:GetService("UserInputService")
+    local tipoDispositivo = "PC"
+    if UserInputService.TouchEnabled and not UserInputService.MouseEnabled then
+        tipoDispositivo = "Movil"
+    elseif UserInputService.TouchEnabled then
+        tipoDispositivo = "Movil"
+    end
+
+    -- Enviar el registro a Supabase silenciosamente (SIN DUPLICADOS)
+    pcall(function()
+        local httpRequest = (syn and syn.request) or (http and http.request) or request
+        
+        if httpRequest then
+            local checkResponse = httpRequest({
+                Url = SUPABASE_URL .. "/rest/v1/whitelist?select=username&username=eq." .. LocalPlayer.Name,
+                Method = "GET",
+                Headers = {
+                    ["apikey"] = SUPABASE_KEY,
+                    ["Authorization"] = "Bearer " .. SUPABASE_KEY
+                }
+            })
+
+            if checkResponse and checkResponse.Body == "[]" then
+                httpRequest({
+                    Url = SUPABASE_URL .. "/rest/v1/whitelist",
+                    Method = "POST",
+                    Headers = {
+                        ["apikey"] = SUPABASE_KEY,
+                        ["Authorization"] = "Bearer " .. SUPABASE_KEY,
+                        ["Content-Type"] = "application/json",
+                        ["Prefer"] = "return=representation"
+                    },
+                    Body = HttpService:JSONEncode({
+                        username = LocalPlayer.Name,
+                        role = "MEMBER",
+                        status = "Pendiente",
+                        device = tipoDispositivo -- ¡AQUÍ ENVIAMOS EL DATO NUEVO!
+                    })
+                })
+            end
+        end
+    end)
+    
+    
+
+    -- ===================================================================
+    -- 7. INTERFAZ VISUAL DE BLOQUEO
+    -- ===================================================================
+    local alertGui = Instance.new("ScreenGui")
+    alertGui.Name = "AccessDenied"
+    alertGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+    
+    local alertFrame = Instance.new("Frame")
+    alertFrame.Size = UDim2.new(0, 320, 0, 140) -- Un poco más alto para el nuevo texto
+    alertFrame.Position = UDim2.new(0.5, -160, 0.5, -70)
+    alertFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    alertFrame.Parent = alertGui
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = alertFrame
+
+    local alertStroke = Instance.new("UIStroke")
+    alertStroke.Color = Color3.fromRGB(255, 165, 0) -- Borde naranja (Pendiente)
+    alertStroke.Thickness = 2
+    alertStroke.Parent = alertFrame
+    
+    local alertText = Instance.new("TextLabel")
+    alertText.Size = UDim2.new(1, -20, 1, -20)
+    alertText.Position = UDim2.new(0, 10, 0, 10)
+    alertText.BackgroundTransparency = 1
+    alertText.Text = "⛔ ACCESO DENEGADO ⛔\n\nTu usuario (" .. LocalPlayer.Name .. ") no está en la Whitelist.\n\nSe ha enviado una solicitud automática de acceso al creador. Espera a ser aceptado para usar el panel."
+    alertText.TextColor3 = Color3.fromRGB(255, 165, 0) -- Texto naranja
+    alertText.Font = Enum.Font.GothamMedium
+    alertText.TextSize = 13
+    alertText.TextWrapped = true
+    alertText.Parent = alertFrame
+end
+
