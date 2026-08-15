@@ -246,12 +246,12 @@ end)
 
 -- ================== OCULTAR / MOSTRAR TARJETA ==================
 local oculto = false
-local tamañoCompleto = card.Size
+local tamanoCompleto = card.Size
 
 hubOcultar.MouseButton1Click:Connect(function()
     oculto = not oculto
     TweenService:Create(card, TweenInfo.new(0.25), {
-        Size = oculto and UDim2.fromOffset(150, 26) or tamañoCompleto
+        Size = oculto and UDim2.fromOffset(150, 26) or tamanoCompleto
     }):Play()
     linea.Visible = not oculto
     filaSwitch.Visible = not oculto
