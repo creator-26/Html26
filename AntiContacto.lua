@@ -17,8 +17,8 @@ local TweenService = game:GetService("TweenService")
 local LocalPlayer = Players.LocalPlayer
 
 -- ================== CONFIGURACIÓN ==================
-local DISTANCIA_MINIMA   = 8    -- studs: si alguien entra en este radio, esquivas
-local DISTANCIA_ESQUIVE  = 6    -- studs: qué tan lejos te teletransporta cada esquive
+local DISTANCIA_MINIMA   = 12    -- studs: si alguien entra en este radio, esquivas
+local DISTANCIA_ESQUIVE  = 7    -- studs: qué tan lejos te teletransporta cada esquive
 local COOLDOWN_ESQUIVE   = 0.5  -- segundos entre cada esquive (evita temblor)
 
 -- ================== ESTADO ==================
