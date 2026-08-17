@@ -109,7 +109,7 @@ local b2 = createBtn("Activar auto clicker", UDim2.new(0, 15, 0, 105), Color3.fr
 local b3 = createBtn("Quitar auto clicker", UDim2.new(0, 15, 0, 155), Color3.fromRGB(150, 0, 0))
 
 -- ================== VELOCIDAD DE CLICK (S / MS) ==================
-local velocidadClickSegundos = 0.04 -- valor por defecto: 10 ms
+local velocidadClickSegundos = 0.06 -- valor por defecto: 60 ms
 local unidadSeleccionada = "ms"     -- "s" o "ms"
 
 local labelVelocidad = Instance.new("TextLabel")
