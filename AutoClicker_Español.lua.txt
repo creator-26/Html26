@@ -1,0 +1,158 @@
+-- dragon_uu911 (V6 - Edición Final)
+-- Solo texto de introducción + AutoClicker + Sistema para minimizar
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = game:GetService("CoreGui")
+ScreenGui.Name = "DragonFinal_v6"
+ScreenGui.ResetOnSpawn = false
+
+local TweenService = game:GetService("TweenService")
+
+-- 1. Texto de introducción (sin fondo negro)
+local DevText = Instance.new("TextLabel")
+DevText.Size = UDim2.new(1, 0, 0, 100)
+DevText.Position = UDim2.new(0, 0, 0.5, -50)
+DevText.Text = "Este script es del desarrollador Dragon"
+DevText.TextColor3 = Color3.fromRGB(255, 255, 255)
+DevText.TextSize = 40 
+DevText.Font = Enum.Font.SpecialElite
+DevText.BackgroundTransparency = 1 -- totalmente transparente
+DevText.TextTransparency = 1 -- empieza oculto para la animación
+DevText.Parent = ScreenGui
+
+-- Sombra para el texto, para que se vea claro en cualquier mapa
+local TextStroke = Instance.new("UIStroke")
+TextStroke.Thickness = 2
+TextStroke.Color = Color3.fromRGB(0, 0, 0)
+TextStroke.Transparency = 1
+TextStroke.Parent = DevText
+
+-- 2. Interfaz principal
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 220, 0, 240)
+MainFrame.Position = UDim2.new(0.5, -110, 0.5, -120)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+MainFrame.BorderSizePixel = 0
+MainFrame.Visible = false -- oculta hasta que termine el texto
+MainFrame.Draggable = true
+MainFrame.Active = true
+MainFrame.Parent = ScreenGui
+
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
+
+local Title = Instance.new("TextLabel")
+Title.Text = "dragon_uu911"
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Font = Enum.Font.GothamBold
+Title.Parent = MainFrame
+
+local Credits = Instance.new("TextLabel")
+Credits.Text = "por: dragon_uu911"
+Credits.Size = UDim2.new(1, 0, 0, 20)
+Credits.Position = UDim2.new(0, 0, 1, -20)
+Credits.BackgroundTransparency = 1
+Credits.TextColor3 = Color3.fromRGB(150, 150, 150)
+Credits.TextSize = 12
+Credits.Parent = MainFrame
+
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Text = "X"
+CloseBtn.Size = UDim2.new(0, 40, 0, 40)
+CloseBtn.Position = UDim2.new(1, -40, 0, 0)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.Parent = MainFrame
+
+local OpenBtn = Instance.new("TextButton")
+OpenBtn.Text = "ABRIR"
+OpenBtn.Size = UDim2.new(0, 80, 0, 35)
+OpenBtn.Position = UDim2.new(0, 10, 0.4, 0)
+OpenBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+OpenBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+OpenBtn.Visible = false
+OpenBtn.Parent = ScreenGui
+Instance.new("UICorner", OpenBtn)
+
+-- Animación del texto (aparece y luego desaparece)
+task.spawn(function()
+    TweenService:Create(DevText, TweenInfo.new(1.5), {TextTransparency = 0}):Play()
+    TweenService:Create(TextStroke, TweenInfo.new(1.5), {Transparency = 0.5}):Play()
+    task.wait(3)
+    TweenService:Create(DevText, TweenInfo.new(1), {TextTransparency = 1}):Play()
+    TweenService:Create(TextStroke, TweenInfo.new(1), {Transparency = 1}):Play()
+    task.wait(1)
+    DevText:Destroy()
+    MainFrame.Visible = true
+end)
+
+-- Funciones del auto clicker
+local ClickTarget = nil
+local IsAutoClicking = false
+
+local function createBtn(name, pos, color)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 190, 0, 40)
+    btn.Position = pos
+    btn.BackgroundColor3 = color
+    btn.Text = name
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Font = Enum.Font.GothamSemibold
+    btn.Parent = MainFrame
+    Instance.new("UICorner", btn)
+    return btn
+end
+
+local b1 = createBtn("Colocar cuadro", UDim2.new(0, 15, 0, 55), Color3.fromRGB(45, 45, 45))
+local b2 = createBtn("Activar auto clicker", UDim2.new(0, 15, 0, 105), Color3.fromRGB(0, 150, 0))
+local b3 = createBtn("Quitar auto clicker", UDim2.new(0, 15, 0, 155), Color3.fromRGB(150, 0, 0))
+
+CloseBtn.MouseButton1Click:Connect(function()
+    MainFrame.Visible = false
+    OpenBtn.Visible = true
+end)
+
+OpenBtn.MouseButton1Click:Connect(function()
+    MainFrame.Visible = true
+    OpenBtn.Visible = false
+end)
+
+b1.MouseButton1Click:Connect(function()
+    if not ClickTarget then
+        ClickTarget = Instance.new("Frame", ScreenGui)
+        ClickTarget.Size = UDim2.new(0, 60, 0, 60)
+        ClickTarget.Position = UDim2.new(0.5, -30, 0.5, -30)
+        ClickTarget.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        ClickTarget.BackgroundTransparency = 0.5
+        ClickTarget.Draggable = true
+        ClickTarget.Active = true
+        Instance.new("UICorner", ClickTarget)
+    end
+end)
+
+b2.MouseButton1Click:Connect(function()
+    if ClickTarget and not IsAutoClicking then
+        IsAutoClicking = true
+        b2.Text = "Funcionando ✅"
+        task.spawn(function()
+            local VIM = game:GetService("VirtualInputManager")
+            while IsAutoClicking do
+                local posX = ClickTarget.AbsolutePosition.X + (ClickTarget.AbsoluteSize.X / 2)
+                local posY = ClickTarget.AbsolutePosition.Y + (ClickTarget.AbsoluteSize.Y / 2)
+                VIM:SendMouseButtonEvent(posX, posY, 0, true, game, 1)
+                VIM:SendMouseButtonEvent(posX, posY, 0, false, game, 1)
+                task.wait(0.01)
+            end
+        end)
+    end
+end)
+
+b3.MouseButton1Click:Connect(function()
+    IsAutoClicking = false
+    b2.Text = "Activar auto clicker"
+    if ClickTarget then
+        ClickTarget:Destroy()
+        ClickTarget = nil
+    end
+end)
