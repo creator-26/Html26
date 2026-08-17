@@ -12,9 +12,9 @@ local TweenService = game:GetService("TweenService")
 local DevText = Instance.new("TextLabel")
 DevText.Size = UDim2.new(1, 0, 0, 100)
 DevText.Position = UDim2.new(0, 0, 0.5, -50)
-DevText.Text = "Este script es del desarrollador Dragon"
+DevText.Text = "Este script es del desarrollador Alexx"
 DevText.TextColor3 = Color3.fromRGB(255, 255, 255)
-DevText.TextSize = 40 
+DevText.TextSize = 35 
 DevText.Font = Enum.Font.SpecialElite
 DevText.BackgroundTransparency = 1 -- totalmente transparente
 DevText.TextTransparency = 1 -- empieza oculto para la animaci贸n
@@ -109,7 +109,7 @@ local b2 = createBtn("Activar auto clicker", UDim2.new(0, 15, 0, 105), Color3.fr
 local b3 = createBtn("Quitar auto clicker", UDim2.new(0, 15, 0, 155), Color3.fromRGB(150, 0, 0))
 
 -- ================== VELOCIDAD DE CLICK (S / MS) ==================
-local velocidadClickSegundos = 0.01 -- valor por defecto: 10 ms
+local velocidadClickSegundos = 0.04 -- valor por defecto: 10 ms
 local unidadSeleccionada = "ms"     -- "s" o "ms"
 
 local labelVelocidad = Instance.new("TextLabel")
