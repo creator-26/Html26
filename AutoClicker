@@ -1,5 +1,5 @@
--- dragon_uu911 (V6 - Edición Final)
--- Solo texto de introducción + AutoClicker + Sistema para minimizar
+-- phol_268t (V6 - Edición Final)
+-- Solo texto de introducci贸n + AutoClicker + Sistema para minimizar
 
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Parent = game:GetService("CoreGui")
@@ -8,7 +8,7 @@ ScreenGui.ResetOnSpawn = false
 
 local TweenService = game:GetService("TweenService")
 
--- 1. Texto de introducción (sin fondo negro)
+-- 1. Texto de introducci贸n (sin fondo negro)
 local DevText = Instance.new("TextLabel")
 DevText.Size = UDim2.new(1, 0, 0, 100)
 DevText.Position = UDim2.new(0, 0, 0.5, -50)
@@ -17,7 +17,7 @@ DevText.TextColor3 = Color3.fromRGB(255, 255, 255)
 DevText.TextSize = 40 
 DevText.Font = Enum.Font.SpecialElite
 DevText.BackgroundTransparency = 1 -- totalmente transparente
-DevText.TextTransparency = 1 -- empieza oculto para la animación
+DevText.TextTransparency = 1 -- empieza oculto para la animaci贸n
 DevText.Parent = ScreenGui
 
 -- Sombra para el texto, para que se vea claro en cualquier mapa
@@ -29,8 +29,8 @@ TextStroke.Parent = DevText
 
 -- 2. Interfaz principal
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 220, 0, 240)
-MainFrame.Position = UDim2.new(0.5, -110, 0.5, -120)
+MainFrame.Size = UDim2.new(0, 220, 0, 300)
+MainFrame.Position = UDim2.new(0.5, -110, 0.5, -150)
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 MainFrame.BorderSizePixel = 0
 MainFrame.Visible = false -- oculta hasta que termine el texto
@@ -75,7 +75,7 @@ OpenBtn.Visible = false
 OpenBtn.Parent = ScreenGui
 Instance.new("UICorner", OpenBtn)
 
--- Animación del texto (aparece y luego desaparece)
+-- Animaci贸n del texto (aparece y luego desaparece)
 task.spawn(function()
     TweenService:Create(DevText, TweenInfo.new(1.5), {TextTransparency = 0}):Play()
     TweenService:Create(TextStroke, TweenInfo.new(1.5), {Transparency = 0.5}):Play()
@@ -108,6 +108,103 @@ local b1 = createBtn("Colocar cuadro", UDim2.new(0, 15, 0, 55), Color3.fromRGB(4
 local b2 = createBtn("Activar auto clicker", UDim2.new(0, 15, 0, 105), Color3.fromRGB(0, 150, 0))
 local b3 = createBtn("Quitar auto clicker", UDim2.new(0, 15, 0, 155), Color3.fromRGB(150, 0, 0))
 
+-- ================== VELOCIDAD DE CLICK (S / MS) ==================
+local velocidadClickSegundos = 0.01 -- valor por defecto: 10 ms
+local unidadSeleccionada = "ms"     -- "s" o "ms"
+
+local labelVelocidad = Instance.new("TextLabel")
+labelVelocidad.Text = "Velocidad de click:"
+labelVelocidad.Size = UDim2.new(0, 190, 0, 16)
+labelVelocidad.Position = UDim2.new(0, 15, 0, 205)
+labelVelocidad.BackgroundTransparency = 1
+labelVelocidad.TextColor3 = Color3.fromRGB(200, 200, 200)
+labelVelocidad.TextSize = 13
+labelVelocidad.Font = Enum.Font.Gotham
+labelVelocidad.TextXAlignment = Enum.TextXAlignment.Left
+labelVelocidad.Parent = MainFrame
+
+local inputVelocidad = Instance.new("TextBox")
+inputVelocidad.Size = UDim2.new(0, 100, 0, 32)
+inputVelocidad.Position = UDim2.new(0, 15, 0, 225)
+inputVelocidad.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+inputVelocidad.TextColor3 = Color3.fromRGB(255, 255, 255)
+inputVelocidad.PlaceholderText = "10"
+inputVelocidad.Text = "10"
+inputVelocidad.ClearTextOnFocus = false
+inputVelocidad.Font = Enum.Font.GothamSemibold
+inputVelocidad.TextSize = 15
+inputVelocidad.Parent = MainFrame
+Instance.new("UICorner", inputVelocidad)
+
+local btnS = Instance.new("TextButton")
+btnS.Text = "S"
+btnS.Size = UDim2.new(0, 40, 0, 32)
+btnS.Position = UDim2.new(0, 120, 0, 225)
+btnS.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+btnS.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnS.Font = Enum.Font.GothamBold
+btnS.Parent = MainFrame
+Instance.new("UICorner", btnS)
+
+local btnMS = Instance.new("TextButton")
+btnMS.Text = "MS"
+btnMS.Size = UDim2.new(0, 45, 0, 32)
+btnMS.Position = UDim2.new(0, 165, 0, 225)
+btnMS.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+btnMS.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnMS.Font = Enum.Font.GothamBold
+btnMS.Parent = MainFrame
+Instance.new("UICorner", btnMS)
+
+-- Actualiza el texto de la caja seg煤n el valor guardado y la unidad activa
+local function actualizarCajaTexto()
+    if unidadSeleccionada == "ms" then
+        inputVelocidad.Text = tostring(math.floor(velocidadClickSegundos * 1000 + 0.5))
+    else
+        inputVelocidad.Text = tostring(velocidadClickSegundos)
+    end
+end
+
+-- Cambia entre segundos y milisegundos, convirtiendo el n煤mero mostrado
+local function seleccionarUnidad(unidad)
+    unidadSeleccionada = unidad
+    btnS.BackgroundColor3 = (unidad == "s") and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(45, 45, 45)
+    btnMS.BackgroundColor3 = (unidad == "ms") and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(45, 45, 45)
+    actualizarCajaTexto()
+end
+
+btnS.MouseButton1Click:Connect(function()
+    seleccionarUnidad("s")
+end)
+
+btnMS.MouseButton1Click:Connect(function()
+    seleccionarUnidad("ms")
+end)
+
+-- Cuando terminas de escribir el n煤mero (le das a "listo" o tocas afuera)
+inputVelocidad.FocusLost:Connect(function()
+    local valor = tonumber(inputVelocidad.Text)
+
+    if not valor or valor <= 0 then
+        -- n煤mero inv谩lido: regresamos al 煤ltimo valor v谩lido, sin romper nada
+        actualizarCajaTexto()
+        return
+    end
+
+    if unidadSeleccionada == "ms" then
+        velocidadClickSegundos = valor / 1000
+    else
+        velocidadClickSegundos = valor
+    end
+
+    -- evita un valor tan bajo que sature el cliente
+    if velocidadClickSegundos < 0.001 then
+        velocidadClickSegundos = 0.001
+    end
+
+    actualizarCajaTexto()
+end)
+
 CloseBtn.MouseButton1Click:Connect(function()
     MainFrame.Visible = false
     OpenBtn.Visible = true
@@ -134,7 +231,7 @@ end)
 b2.MouseButton1Click:Connect(function()
     if ClickTarget and not IsAutoClicking then
         IsAutoClicking = true
-        b2.Text = "Funcionando ✅"
+        b2.Text = "Funcionando 鉁�"
         task.spawn(function()
             local VIM = game:GetService("VirtualInputManager")
             while IsAutoClicking do
@@ -142,7 +239,7 @@ b2.MouseButton1Click:Connect(function()
                 local posY = ClickTarget.AbsolutePosition.Y + (ClickTarget.AbsoluteSize.Y / 2)
                 VIM:SendMouseButtonEvent(posX, posY, 0, true, game, 1)
                 VIM:SendMouseButtonEvent(posX, posY, 0, false, game, 1)
-                task.wait(0.01)
+                task.wait(velocidadClickSegundos)
             end
         end)
     end
