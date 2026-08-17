@@ -41,7 +41,7 @@ MainFrame.Parent = ScreenGui
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
-Title.Text = "dragon_uu911"
+Title.Text = "auto clicker"
 Title.Size = UDim2.new(1, 0, 0, 40)
 Title.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -49,7 +49,7 @@ Title.Font = Enum.Font.GothamBold
 Title.Parent = MainFrame
 
 local Credits = Instance.new("TextLabel")
-Credits.Text = "por: dragon_uu911"
+Credits.Text = "por: phol_268t"
 Credits.Size = UDim2.new(1, 0, 0, 20)
 Credits.Position = UDim2.new(0, 0, 1, -20)
 Credits.BackgroundTransparency = 1
@@ -99,6 +99,7 @@ local function createBtn(name, pos, color)
     btn.Text = name
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Font = Enum.Font.GothamSemibold
+    btn.TextSize = 15
     btn.Parent = MainFrame
     Instance.new("UICorner", btn)
     return btn
