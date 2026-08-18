@@ -130,8 +130,8 @@ inputVelocidad.Size = UDim2.new(0, 100, 0, 32)
 inputVelocidad.Position = UDim2.new(0, 15, 0, 225)
 inputVelocidad.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 inputVelocidad.TextColor3 = Color3.fromRGB(255, 255, 255)
-inputVelocidad.PlaceholderText = "10"
-inputVelocidad.Text = "10"
+inputVelocidad.PlaceholderText = "60"
+inputVelocidad.Text = "60"
 inputVelocidad.ClearTextOnFocus = false
 inputVelocidad.Font = Enum.Font.GothamSemibold
 inputVelocidad.TextSize = 15
@@ -233,7 +233,7 @@ end)
 b2.MouseButton1Click:Connect(function()
     if ClickTarget and not IsAutoClicking then
         IsAutoClicking = true
-        b2.Text = "Funcionando 鉁�"
+        b2.Text = "Funcionando 💪"
         task.spawn(function()
             local VIM = game:GetService("VirtualInputManager")
             while IsAutoClicking do
