@@ -8,7 +8,7 @@ ScreenGui.ResetOnSpawn = false
 
 local TweenService = game:GetService("TweenService")
 
--- 1. Texto de introducci贸n (sin fondo negro)
+-- 1. Texto de introduccion (sin fondo negro)
 local DevText = Instance.new("TextLabel")
 DevText.Size = UDim2.new(1, 0, 0, 100)
 DevText.Position = UDim2.new(0, 0, 0.5, -50)
@@ -54,7 +54,7 @@ Credits.Size = UDim2.new(1, 0, 0, 20)
 Credits.Position = UDim2.new(0, 0, 1, -20)
 Credits.BackgroundTransparency = 1
 Credits.TextColor3 = Color3.fromRGB(150, 150, 150)
-Credits.TextSize = 12
+Credits.TextSize = 11
 Credits.Parent = MainFrame
 
 local CloseBtn = Instance.new("TextButton")
