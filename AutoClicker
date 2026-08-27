@@ -191,7 +191,7 @@ local ajusteX = 36
 local ajusteY = 54
 
 local labelAjuste = Instance.new("TextLabel")
-labelAjuste.Text = "Ajuste X  /  Ajuste Y:"
+labelAjuste.Text = "Ajuste X     /     Ajuste Y:"
 labelAjuste.Size = UDim2.new(0, 190, 0, 16)
 labelAjuste.Position = UDim2.new(0, 15, 0, 262)
 labelAjuste.BackgroundTransparency = 1
