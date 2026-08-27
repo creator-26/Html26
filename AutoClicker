@@ -1,10 +1,11 @@
 -- phol_268t (V6 - Edición Final)
--- Solo texto de introducci贸n + AutoClicker + Sistema para minimizar
+-- Solo texto de introducción + AutoClicker + Sistema para minimizar
 
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Parent = game:GetService("CoreGui")
 ScreenGui.Name = "DragonFinal_v6"
 ScreenGui.ResetOnSpawn = false
+ScreenGui.IgnoreGuiInset = true -- así el cuadro y el click real quedan alineados
 
 local TweenService = game:GetService("TweenService")
 
@@ -17,7 +18,7 @@ DevText.TextColor3 = Color3.fromRGB(255, 255, 255)
 DevText.TextSize = 35 
 DevText.Font = Enum.Font.SpecialElite
 DevText.BackgroundTransparency = 1 -- totalmente transparente
-DevText.TextTransparency = 1 -- empieza oculto para la animaci贸n
+DevText.TextTransparency = 1 -- empieza oculto para la animación
 DevText.Parent = ScreenGui
 
 -- Sombra para el texto, para que se vea claro en cualquier mapa
@@ -29,8 +30,8 @@ TextStroke.Parent = DevText
 
 -- 2. Interfaz principal
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 220, 0, 300)
-MainFrame.Position = UDim2.new(0.5, -110, 0.5, -150)
+MainFrame.Size = UDim2.new(0, 220, 0, 340)
+MainFrame.Position = UDim2.new(0.5, -110, 0.5, -170)
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 MainFrame.BorderSizePixel = 0
 MainFrame.Visible = false -- oculta hasta que termine el texto
@@ -183,12 +184,67 @@ btnMS.MouseButton1Click:Connect(function()
     seleccionarUnidad("ms")
 end)
 
+-- ================== CALIBRACIÓN: AJUSTE X / AJUSTE Y ==================
+-- Corrige el desfase entre dónde se ve el cuadro y dónde cae el click real.
+-- Prueba positivo/negativo hasta que el click caiga justo en el centro.
+local ajusteX = 0
+local ajusteY = 0
+
+local labelAjuste = Instance.new("TextLabel")
+labelAjuste.Text = "Ajuste X / Ajuste Y:"
+labelAjuste.Size = UDim2.new(0, 190, 0, 16)
+labelAjuste.Position = UDim2.new(0, 15, 0, 262)
+labelAjuste.BackgroundTransparency = 1
+labelAjuste.TextColor3 = Color3.fromRGB(200, 200, 200)
+labelAjuste.TextSize = 13
+labelAjuste.Font = Enum.Font.Gotham
+labelAjuste.TextXAlignment = Enum.TextXAlignment.Left
+labelAjuste.Parent = MainFrame
+
+local inputAjusteX = Instance.new("TextBox")
+inputAjusteX.Size = UDim2.new(0, 90, 0, 30)
+inputAjusteX.Position = UDim2.new(0, 15, 0, 281)
+inputAjusteX.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+inputAjusteX.TextColor3 = Color3.fromRGB(255, 255, 255)
+inputAjusteX.PlaceholderText = "X: 0"
+inputAjusteX.Text = "0"
+inputAjusteX.ClearTextOnFocus = false
+inputAjusteX.Font = Enum.Font.GothamSemibold
+inputAjusteX.TextSize = 14
+inputAjusteX.Parent = MainFrame
+Instance.new("UICorner", inputAjusteX)
+
+local inputAjusteY = Instance.new("TextBox")
+inputAjusteY.Size = UDim2.new(0, 90, 0, 30)
+inputAjusteY.Position = UDim2.new(0, 115, 0, 281)
+inputAjusteY.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+inputAjusteY.TextColor3 = Color3.fromRGB(255, 255, 255)
+inputAjusteY.PlaceholderText = "Y: 0"
+inputAjusteY.Text = "0"
+inputAjusteY.ClearTextOnFocus = false
+inputAjusteY.Font = Enum.Font.GothamSemibold
+inputAjusteY.TextSize = 14
+inputAjusteY.Parent = MainFrame
+Instance.new("UICorner", inputAjusteY)
+
+inputAjusteX.FocusLost:Connect(function()
+    local valor = tonumber(inputAjusteX.Text)
+    ajusteX = valor or 0
+    inputAjusteX.Text = tostring(ajusteX)
+end)
+
+inputAjusteY.FocusLost:Connect(function()
+    local valor = tonumber(inputAjusteY.Text)
+    ajusteY = valor or 0
+    inputAjusteY.Text = tostring(ajusteY)
+end)
+
 -- Cuando terminas de escribir el n煤mero (le das a "listo" o tocas afuera)
 inputVelocidad.FocusLost:Connect(function()
     local valor = tonumber(inputVelocidad.Text)
 
     if not valor or valor <= 0 then
-        -- n煤mero inv谩lido: regresamos al 煤ltimo valor v谩lido, sin romper nada
+        -- número inválido: regresamos al último valor válido, sin romper nada
         actualizarCajaTexto()
         return
     end
@@ -227,6 +283,22 @@ b1.MouseButton1Click:Connect(function()
         ClickTarget.Draggable = true
         ClickTarget.Active = true
         Instance.new("UICorner", ClickTarget)
+
+        -- Borde bien visible, para que se note claramente dónde empieza y termina el cuadro
+        local borde = Instance.new("UIStroke")
+        borde.Color = Color3.fromRGB(0, 200, 140)
+        borde.Thickness = 2
+        borde.Parent = ClickTarget
+
+        -- Punto central: marca exactamente el pixel donde va a caer el click
+        local puntoCentral = Instance.new("Frame")
+        puntoCentral.Size = UDim2.fromOffset(10, 10)
+        puntoCentral.AnchorPoint = Vector2.new(0.5, 0.5)
+        puntoCentral.Position = UDim2.fromScale(0.5, 0.5)
+        puntoCentral.BackgroundColor3 = Color3.fromRGB(0, 200, 140)
+        puntoCentral.BorderSizePixel = 0
+        puntoCentral.Parent = ClickTarget
+        Instance.new("UICorner", puntoCentral).CornerRadius = UDim.new(1, 0)
     end
 end)
 
@@ -234,11 +306,12 @@ b2.MouseButton1Click:Connect(function()
     if ClickTarget and not IsAutoClicking then
         IsAutoClicking = true
         b2.Text = "Funcionando 💪"
+        ClickTarget.Active = false -- deja de bloquear su propio click
         task.spawn(function()
             local VIM = game:GetService("VirtualInputManager")
             while IsAutoClicking do
-                local posX = ClickTarget.AbsolutePosition.X + (ClickTarget.AbsoluteSize.X / 2)
-                local posY = ClickTarget.AbsolutePosition.Y + (ClickTarget.AbsoluteSize.Y / 2)
+                local posX = ClickTarget.AbsolutePosition.X + (ClickTarget.AbsoluteSize.X / 2) + ajusteX
+                local posY = ClickTarget.AbsolutePosition.Y + (ClickTarget.AbsoluteSize.Y / 2) + ajusteY
                 VIM:SendMouseButtonEvent(posX, posY, 0, true, game, 1)
                 VIM:SendMouseButtonEvent(posX, posY, 0, false, game, 1)
                 task.wait(velocidadClickSegundos)
