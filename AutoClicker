@@ -187,11 +187,11 @@ end)
 -- ================== CALIBRACIÓN: AJUSTE X / AJUSTE Y ==================
 -- Corrige el desfase entre dónde se ve el cuadro y dónde cae el click real.
 -- Prueba positivo/negativo hasta que el click caiga justo en el centro.
-local ajusteX = 0
-local ajusteY = 0
+local ajusteX = 36
+local ajusteY = 54
 
 local labelAjuste = Instance.new("TextLabel")
-labelAjuste.Text = "Ajuste X / Ajuste Y:"
+labelAjuste.Text = "Ajuste X  /  Ajuste Y:"
 labelAjuste.Size = UDim2.new(0, 190, 0, 16)
 labelAjuste.Position = UDim2.new(0, 15, 0, 262)
 labelAjuste.BackgroundTransparency = 1
@@ -207,7 +207,7 @@ inputAjusteX.Position = UDim2.new(0, 15, 0, 281)
 inputAjusteX.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 inputAjusteX.TextColor3 = Color3.fromRGB(255, 255, 255)
 inputAjusteX.PlaceholderText = "X: 0"
-inputAjusteX.Text = "0"
+inputAjusteX.Text = "36"
 inputAjusteX.ClearTextOnFocus = false
 inputAjusteX.Font = Enum.Font.GothamSemibold
 inputAjusteX.TextSize = 14
@@ -220,7 +220,7 @@ inputAjusteY.Position = UDim2.new(0, 115, 0, 281)
 inputAjusteY.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 inputAjusteY.TextColor3 = Color3.fromRGB(255, 255, 255)
 inputAjusteY.PlaceholderText = "Y: 0"
-inputAjusteY.Text = "0"
+inputAjusteY.Text = "54"
 inputAjusteY.ClearTextOnFocus = false
 inputAjusteY.Font = Enum.Font.GothamSemibold
 inputAjusteY.TextSize = 14
