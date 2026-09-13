@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#0B0F17">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tiempo">
+<title>Conversor de tiempo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">MICROSEGUNDOS A SIGLOS</p>
+  <h1>Conversor de tiempo</h1>
+
+  <div class="readout">
+    <div class="from" id="fromEcho">6500 horas</div>
+    <div class="to" id="resultBig">= 270.833 días</div>
+  </div>
+
+  <p class="field-label">De</p>
+  <div class="field">
+    <input type="number" id="fromValue" step="any" value="6500" inputmode="decimal">
+    <span class="suffix" id="fromSuffix">h</span>
+  </div>
+  <select id="fromUnit"></select>
+
+  <div class="swap-row">
+    <button class="swap-btn" id="swapBtn" aria-label="Intercambiar unidades">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 3l4 4-4 4"></path><path d="M3 7h18"></path>
+        <path d="M7 21l-4-4 4-4"></path><path d="M21 17H3"></path>
+      </svg>
+    </button>
+  </div>
+
+  <p class="field-label">A</p>
+  <div class="field">
+    <input type="number" id="toValue" step="any" inputmode="decimal">
+    <span class="suffix" id="toSuffix">d</span>
+  </div>
+  <select id="toUnit"></select>
+
+  <p class="formula" id="formulaText"></p>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
