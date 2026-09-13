@@ -1,0 +1,128 @@
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #0B0F17;
+  color: #E7ECF3;
+  font-family: 'Inter', system-ui, sans-serif;
+  min-height: 100vh;
+}
+body {
+  display: flex;
+  justify-content: center;
+  padding: 32px 20px 60px;
+}
+.wrap {
+  width: 100%;
+  max-width: 400px;
+}
+.eyebrow {
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: #6C7690;
+  margin: 0 0 6px;
+}
+h1 {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 28px;
+  color: #E7ECF3;
+}
+.readout {
+  text-align: center;
+  background: #121826;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 16px;
+  padding: 20px 16px;
+  margin-bottom: 20px;
+}
+.readout .from {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  color: #8B93A7;
+  margin-bottom: 6px;
+}
+.readout .to {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 28px;
+  font-weight: 600;
+  color: #F2A93B;
+  word-break: break-word;
+}
+.field-label {
+  font-size: 12px;
+  color: #6C7690;
+  margin: 0 0 6px 2px;
+}
+.field {
+  position: relative;
+  margin-bottom: 10px;
+}
+.field input {
+  width: 100%;
+  background: #121826;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 12px;
+  color: #E7ECF3;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 17px;
+  padding: 14px 64px 14px 16px;
+  outline: none;
+}
+.field input:focus {
+  border-color: #F2A93B;
+}
+.field .suffix {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  color: #6C7690;
+  pointer-events: none;
+}
+select {
+  width: 100%;
+  background: #0F1420;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  color: #C4CBDA;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  padding: 10px 12px;
+  margin-bottom: 18px;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236C7690' stroke-width='1.5' fill='none' fill-rule='evenodd'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+}
+.swap-row {
+  display: flex;
+  justify-content: center;
+  margin: -4px 0 14px;
+}
+.swap-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #121826;
+  border: 1px solid rgba(255,255,255,0.10);
+  color: #F2A93B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.swap-btn:active {
+  transform: scale(0.95);
+}
+.formula {
+  text-align: center;
+  font-size: 13px;
+  color: #6C7690;
+  margin-top: 8px;
+}
