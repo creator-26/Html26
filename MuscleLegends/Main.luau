@@ -232,9 +232,18 @@ end)
 local function lockPosition()
 	eAntiFling()
 	if not Protection.PositionLock.Enabled or not Protection.PositionLock.Position or not PlayerData.Player.Character then return end
-	if not PlayerData.Player.Character:FindFirstChild("HumanoidRootPart") then return end
-	if PlayerData.Player.Character.HumanoidRootPart:FindFirstChild("PositionLocker") then
-		PlayerData.Player.Character.HumanoidRootPart.PositionLocker.Position = Protection.PositionLock.Position
+	local hrp = PlayerData.Player.Character:FindFirstChild("HumanoidRootPart")
+	if not hrp then return end
+
+	-- Si nos alejamos demasiado del punto bloqueado (TP que mueve el CFrame sin
+	-- regenerar el personaje), regresa al instante en vez de esperar a que la
+	-- fuerza física lo jale de vuelta poco a poco.
+	if (hrp.Position - Protection.PositionLock.Position).Magnitude > 4 then
+		hrp.CFrame = CFrame.new(Protection.PositionLock.Position)
+	end
+
+	if hrp:FindFirstChild("PositionLocker") then
+		hrp.PositionLocker.Position = Protection.PositionLock.Position
 	else
 		dAntiFling()
 		local bp = Instance.new("BodyPosition")
@@ -242,7 +251,7 @@ local function lockPosition()
 		bp.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
 		bp.Position = Protection.PositionLock.Position
 		bp.P = 100000
-		bp.Parent = PlayerData.Player.Character.HumanoidRootPart
+		bp.Parent = hrp
 	end
 end
 
