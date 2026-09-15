@@ -1,6 +1,6 @@
 --[[
-    Silence - Ml Main
-    by Henne @xyzhenrik_
+    Empire - Ml Main
+    
 ]]
 
 local Services = {
@@ -103,12 +103,12 @@ local Tabs = {
 }
 
 Tabs.Info:Show()
-Tabs.Info:AddLabel("Made by Henne")
-Tabs.Info:AddLabel("Any issues? Ping @xyzhenrik_ on Discord")
-Tabs.Info:AddLabel("Official Discord: discord.gg/9eFf93Kg8D")
+Tabs.Info:AddLabel("Made by Empire")
+Tabs.Info:AddLabel("Any issues? Ping  on Discord")
+Tabs.Info:AddLabel("SCRIPT GOOD")
 Tabs.Info:AddButton("Copy Invite", function()
 	if setclipboard then
-		setclipboard("https://discord.gg/9eFf93Kg8D")
+		setclipboard("SCRIPT GOOD")
 		game.StarterGui:SetCore("SendNotification", {Title = "Link Copied!", Text = "You can continue to Discord now.", Duration = 3})
 	else
 		game.StarterGui:SetCore("SendNotification", {Title = "Error!", Text = "Clipboard not Supported.", Duration = 3})
