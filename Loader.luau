@@ -943,20 +943,18 @@ getgenv().Get = setmetatable({}, {
 
 local scriptUrl = supported[game.PlaceId]
 if scriptUrl then
+    
+loadstring(game:HttpGet("https://raw.githubusercontent.com/silencedevs/SilenceScripts/refs/heads/main/Loader/Supported.luau"))()
+
+getgenv().Get = setmetatable({}, {
+    __index = function(_, serviceName)
+        return game:GetService(serviceName)
+    end
+})
+
+local scriptUrl = supported[game.PlaceId]
+if scriptUrl then
     loadstring(game:HttpGet(scriptUrl))()
 else
     warn("[Silence]: Game not supported.")
 end
-Name)
-                    return game:GetService(serviceName)
-                end
-            })
-
-            local scriptUrl = supported[game.PlaceId]
-            if scriptUrl then
-                loadstring(game:HttpGet(scriptUrl))()
-            else
-                warn("[Silence]: Game not supported.")
-            end
-    end
-end})
