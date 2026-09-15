@@ -1,7 +1,6 @@
 --[[
-    Silence - Loader
-    by Havoc @seancode4life
-       Henne @xyzhenrik_
+    Empire - Loader
+    
 ]]
 local KeySystem = {}
 KeySystem.__index = KeySystem
