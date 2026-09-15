@@ -1,7 +1,6 @@
 --[[
-    Silence - Ml Farming
-    by Henne @xyzhenrik_
-       Muki @mukimagdich
+    EMPIRE - Ml Farming
+    
 ]]
 
 local services = {
