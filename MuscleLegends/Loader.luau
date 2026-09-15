@@ -1,6 +1,6 @@
 --[[
-    Silence - ML Loader
-    by Henne @xyzhenrik_
+    Empire - ML Loader
+    by arte 
 ]]
 
 local LoaderSystem = {}
@@ -28,7 +28,7 @@ end
 
 
 function LoaderSystem:CreateLoader(Config)
-    local Title = "Silence | ML"
+    local Title = "Empire | ML"
     local Description = Config.Description or "Choose your script..."
     local MainScriptURL = Config.MainScriptURL or "https://raw.githubusercontent.com/silencedevs/SilenceScripts/refs/heads/main/Scripts/MuscleLegends/Main.luau"
     local FastFarmingURL = Config.FastFarmingURL or "https://raw.githubusercontent.com/silencedevs/SilenceScripts/refs/heads/main/Scripts/MuscleLegends/Farming.luau"
@@ -182,7 +182,7 @@ local FooterLine = Create("Frame", {
 
 local FooterText = Create("TextLabel", {
     Font = Enum.Font.FredokaOne,
-    Text = "Made with  ❤️  by Henne",
+    Text = "Made with  ❤️  by Artemisa",
     TextColor3 = Color3.fromRGB(255, 0, 0),
     TextSize = 15,
     TextTransparency = 0,
@@ -196,7 +196,7 @@ local FooterText = Create("TextLabel", {
 
 local FooterGlow = Create("TextLabel", {
     Font = Enum.Font.FredokaOne,
-    Text = "Made with  ❤️  by Henne",
+    Text = "Made with  ❤️  by Artemisa",
     TextColor3 = Color3.fromRGB(255, 0, 0),
     TextTransparency = 0.85,
     TextSize = 15,
