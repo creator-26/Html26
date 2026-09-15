@@ -39,7 +39,7 @@ local function Create(className, properties, parent)
 end
 
 function KeySystem:CreateKeySystem(Config)
-    local Title = "Silence"
+    local Title = "Empire"
     local Description = Config.Description or "Input Key..."
     local Keys = Config.Keys or {"", "", ""}
     local MainScriptCallback = Config.MainScriptCallback or function(success) end
