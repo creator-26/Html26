@@ -235,27 +235,17 @@ local function lockPosition()
 	local hrp = PlayerData.Player.Character:FindFirstChild("HumanoidRootPart")
 	if not hrp then return end
 
-	if (hrp.Position - Protection.PositionLock.Position).Magnitude > 4 then
-		hrp.CFrame = CFrame.new(Protection.PositionLock.Position)
-	end
-
-	if hrp:FindFirstChild("PositionLocker") then
-		hrp.PositionLocker.Position = Protection.PositionLock.Position
-	else
-		dAntiFling()
-		local bp = Instance.new("BodyPosition")
-		bp.Name = "PositionLocker"
-		bp.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-		bp.Position = Protection.PositionLock.Position
-		bp.P = 100000
-		bp.Parent = hrp
-	end
+	hrp.CFrame = CFrame.new(Protection.PositionLock.Position)
+	hrp.Anchored = true
+	hrp.Velocity = Vector3.new(0, 0, 0)
+	hrp.RotVelocity = Vector3.new(0, 0, 0)
 end
 
 local function unlockPosition()
-	if PlayerData.Player.Character and PlayerData.Player.Character:FindFirstChild("HumanoidRootPart") then
-		if PlayerData.Player.Character.HumanoidRootPart:FindFirstChild("PositionLocker") then
-			PlayerData.Player.Character.HumanoidRootPart.PositionLocker:Destroy()
+	if PlayerData.Player.Character then
+		local hrp = PlayerData.Player.Character:FindFirstChild("HumanoidRootPart")
+		if hrp then
+			hrp.Anchored = false
 		end
 	end
 	Protection.PositionLock.Position = nil
