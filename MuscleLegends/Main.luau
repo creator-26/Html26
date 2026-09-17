@@ -230,23 +230,24 @@ PlayerData.Player.CharacterAdded:Connect(function(newChar)
 end)
 
 local function lockPosition()
-	eAntiFling()
 	if not Protection.PositionLock.Enabled or not Protection.PositionLock.Position or not PlayerData.Player.Character then return end
-	local hrp = PlayerData.Player.Character:FindFirstChild("HumanoidRootPart")
-	if not hrp then return end
+	if getgenv().posLock then return end -- ya está corriendo, no dupliques
 
-	hrp.CFrame = CFrame.new(Protection.PositionLock.Position)
-	hrp.Anchored = true
-	hrp.Velocity = Vector3.new(0, 0, 0)
-	hrp.RotVelocity = Vector3.new(0, 0, 0)
+	getgenv().posLock = Services.RunService.Heartbeat:Connect(function()
+		local char = PlayerData.Player.Character
+		local hrp = char and char:FindFirstChild("HumanoidRootPart")
+		if hrp and Protection.PositionLock.Position then
+			hrp.CFrame = CFrame.new(Protection.PositionLock.Position)
+			hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+			hrp.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+		end
+	end)
 end
 
 local function unlockPosition()
-	if PlayerData.Player.Character then
-		local hrp = PlayerData.Player.Character:FindFirstChild("HumanoidRootPart")
-		if hrp then
-			hrp.Anchored = false
-		end
+	if getgenv().posLock then
+		getgenv().posLock:Disconnect()
+		getgenv().posLock = nil
 	end
 	Protection.PositionLock.Position = nil
 end
