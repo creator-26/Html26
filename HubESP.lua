@@ -1,0 +1,318 @@
+-- ================== HUB ==================
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+-- State compartido entre el hub y el ESP (mismo script)
+local State = {}
+if State.VerVida == nil then State.VerVida = true end
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "MiniHub"
+gui.ResetOnSpawn = false
+gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- Ventana (pequeña, fuera del centro)
+local main = Instance.new("Frame")
+main.Size = UDim2.new(0, 190, 0, 90)
+main.Position = UDim2.new(0.03, 0, 0.3, 0)
+main.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+main.BorderSizePixel = 0
+main.ClipsDescendants = true
+main.Active = true
+main.Parent = gui
+Instance.new("UICorner", main).CornerRadius = UDim.new(0, 8)
+local mainStroke = Instance.new("UIStroke", main)
+mainStroke.Color = Color3.fromRGB(70, 70, 70)
+
+-- Barra de título
+local bar = Instance.new("Frame")
+bar.Size = UDim2.new(1, 0, 0, 28)
+bar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+bar.BorderSizePixel = 0
+bar.Parent = main
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -64, 1, 0)
+title.Position = UDim2.new(0, 10, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "HUB"
+title.Font = Enum.Font.GothamBold
+title.TextSize = 14
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = bar
+
+local function barButton(text, xOffset)
+    local b = Instance.new("TextButton")
+    b.Size = UDim2.new(0, 26, 0, 22)
+    b.Position = UDim2.new(1, xOffset, 0, 3)
+    b.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    b.Text = text
+    b.Font = Enum.Font.GothamBold
+    b.TextSize = 14
+    b.TextColor3 = Color3.fromRGB(255, 255, 255)
+    b.AutoButtonColor = true
+    b.Parent = bar
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 5)
+    return b
+end
+
+local minBtn = barButton("-", -58)
+local closeBtn = barButton("X", -30)
+
+-- Contenido
+local content = Instance.new("Frame")
+content.Size = UDim2.new(1, 0, 1, -28)
+content.Position = UDim2.new(0, 0, 0, 28)
+content.BackgroundTransparency = 1
+content.Parent = main
+
+local label = Instance.new("TextLabel")
+label.Size = UDim2.new(1, -80, 0, 30)
+label.Position = UDim2.new(0, 12, 0, 14)
+label.BackgroundTransparency = 1
+label.Text = "Ver vida"
+label.Font = Enum.Font.GothamMedium
+label.TextSize = 15
+label.TextColor3 = Color3.fromRGB(255, 255, 255)
+label.TextXAlignment = Enum.TextXAlignment.Left
+label.Parent = content
+
+-- Interruptor
+local switch = Instance.new("TextButton")
+switch.Size = UDim2.new(0, 46, 0, 24)
+switch.Position = UDim2.new(1, -58, 0, 17)
+switch.Text = ""
+switch.AutoButtonColor = false
+switch.Parent = content
+Instance.new("UICorner", switch).CornerRadius = UDim.new(1, 0)
+
+local knob = Instance.new("Frame")
+knob.Size = UDim2.new(0, 18, 0, 18)
+knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+knob.Parent = switch
+Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
+
+local function applyVerVida()
+    for _, plr in ipairs(Players:GetPlayers()) do
+        local head = plr.Character and plr.Character:FindFirstChild("Head")
+        local esp = head and head:FindFirstChild("VAL_ESP")
+        if esp then esp.Enabled = State.VerVida end
+    end
+end
+
+local function refreshSwitch()
+    local on = State.VerVida
+    TweenService:Create(switch, TweenInfo.new(0.15), {
+        BackgroundColor3 = on and Color3.fromRGB(60, 200, 90) or Color3.fromRGB(70, 70, 70)
+    }):Play()
+    TweenService:Create(knob, TweenInfo.new(0.15), {
+        Position = on and UDim2.new(1, -21, 0, 3) or UDim2.new(0, 3, 0, 3)
+    }):Play()
+end
+
+switch.MouseButton1Click:Connect(function()
+    State.VerVida = not State.VerVida
+    refreshSwitch()
+    applyVerVida()
+end)
+refreshSwitch()
+applyVerVida()
+
+-- Minimizar (-): solo queda la barra
+local minimized = false
+minBtn.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    content.Visible = not minimized
+    main:TweenSize(UDim2.new(0, 190, 0, minimized and 28 or 90), "Out", "Quad", 0.15, true)
+    minBtn.Text = minimized and "+" or "-"
+end)
+
+-- Botón flotante para reabrir
+local openBtn = Instance.new("TextButton")
+openBtn.Size = UDim2.new(0, 36, 0, 36)
+openBtn.Position = UDim2.new(0.03, 0, 0.3, 0)
+openBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+openBtn.Text = "H"
+openBtn.Font = Enum.Font.GothamBold
+openBtn.TextSize = 16
+openBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+openBtn.Visible = false
+openBtn.Parent = gui
+Instance.new("UICorner", openBtn).CornerRadius = UDim.new(1, 0)
+Instance.new("UIStroke", openBtn).Color = Color3.fromRGB(70, 70, 70)
+
+closeBtn.MouseButton1Click:Connect(function()
+    openBtn.Position = main.Position
+    main.Visible = false
+    openBtn.Visible = true
+end)
+openBtn.MouseButton1Click:Connect(function()
+    main.Position = openBtn.Position
+    openBtn.Visible = false
+    main.Visible = true
+end)
+
+-- Arrastrar (PC y móvil)
+do
+    local dragging, dragStart, startPos
+    bar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = main.Position
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch) then
+            local d = input.Position - dragStart
+            main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + d.X,
+                                      startPos.Y.Scale, startPos.Y.Offset + d.Y)
+        end
+    end)
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+end
+-- ================== FIN HUB ==================
+
+-- ================== SISTEMA DE ESP (VER VIDA) ==================
+task.spawn(function()
+    repeat task.wait() until game:IsLoaded()
+    task.wait(1)
+
+    local Players = game:GetService("Players")
+
+    -- 1. Sistema de formato de números
+    local suffixes = {
+        {"Qi", 1e18}, {"Qa", 1e15}, {"T",  1e12},
+        {"B",  1e9},  {"M",  1e6},  {"K",  1e3}
+    }
+
+    local function formatNumber(n)
+        if type(n) ~= "number" then return "0" end
+        for _, s in ipairs(suffixes) do
+            local name, val = s[1], s[2]
+            if n >= val then
+                return string.format("%.2f%s", n / val, name)
+            end
+        end
+        return tostring(math.floor(n))
+    end
+
+    -- Función auxiliar para crear textos con bordes optimizados
+    local function createThickLabel(name, color, order, parent)
+        local label = Instance.new("TextLabel")
+        label.Name = name
+        label.Size = UDim2.new(1, 0, 0.33, 0)
+        label.BackgroundTransparency = 1
+        label.Font = Enum.Font.GothamBlack
+        label.TextScaled = true
+        label.TextColor3 = color
+        label.LayoutOrder = order
+        label.Parent = parent
+
+        local textConstraint = Instance.new("UITextSizeConstraint")
+        textConstraint.MaxTextSize = 34
+        textConstraint.MinTextSize = 14 -- antes 38 (mayor que el máximo)
+        textConstraint.Parent = label
+
+        local stroke = Instance.new("UIStroke")
+        stroke.Thickness = 2.2
+        stroke.Color = Color3.fromRGB(0, 0, 0)
+        stroke.Transparency = 0
+        stroke.Parent = label
+
+        return label
+    end
+
+    -- 2. Función principal para crear el ESP
+    local function applyCustomESP(player)
+
+        local function onCharacterAdded(character)
+            local head = character:WaitForChild("Head", 5)
+            local humanoid = character:WaitForChild("Humanoid", 5)
+            if not head or not humanoid then return end
+
+            local oldEsp = head:FindFirstChild("VAL_ESP")
+            if oldEsp then oldEsp:Destroy() end
+
+            local billboard = Instance.new("BillboardGui")
+            billboard.Name = "VAL_ESP"
+            billboard.Size = UDim2.new(8.5, 0, 4, 0)
+            billboard.StudsOffset = Vector3.new(0, 6.6, 0)
+            billboard.MaxDistance = 500
+            billboard.AlwaysOnTop = true
+
+            -- Conexión con el menú
+            if State and State.VerVida ~= nil then
+                billboard.Enabled = State.VerVida
+            end
+
+            billboard.Parent = head
+
+            local container = Instance.new("Frame")
+            container.Size = UDim2.new(1, 0, 1, 0)
+            container.BackgroundTransparency = 1
+            container.Parent = billboard
+
+            local listLayout = Instance.new("UIListLayout")
+            listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+            listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+            listLayout.Parent = container
+
+            -- [1] NOMBRE
+            local nameLabel = createThickLabel("NameLabel", Color3.fromRGB(255, 230, 40), 1, container)
+            nameLabel.Text = player.DisplayName
+
+            -- [2] HP
+            local hpLabel = createThickLabel("HpLabel", Color3.fromRGB(255, 255, 255), 2, container)
+
+            -- [3] DMG (10%)
+            local dmgLabel = createThickLabel("DmgLabel", Color3.fromRGB(255, 65, 65), 3, container)
+
+            -- Actualización
+            local leaderstats = player:WaitForChild("leaderstats", 5)
+            local strengthStat = leaderstats and leaderstats:FindFirstChild("Strength")
+
+            local function updateLabels()
+                if humanoid and humanoid.Parent then
+                    hpLabel.Text = "HP: " .. formatNumber(humanoid.Health) .. "/" .. formatNumber(humanoid.MaxHealth)
+                end
+
+                if strengthStat then
+                    local normalDmg = strengthStat.Value * 0.1
+                    dmgLabel.Text = "DMG: " .. formatNumber(normalDmg)
+                else
+                    dmgLabel.Text = "DMG: 0"
+                end
+            end
+
+            humanoid.HealthChanged:Connect(updateLabels)
+            if strengthStat then
+                strengthStat.Changed:Connect(updateLabels)
+            end
+
+            updateLabels()
+        end
+
+        if player.Character then
+            onCharacterAdded(player.Character)
+        end
+        player.CharacterAdded:Connect(onCharacterAdded)
+    end
+
+    -- 3. Aplicar a TODOS los jugadores actuales
+    for _, p in ipairs(Players:GetPlayers()) do
+        applyCustomESP(p)
+    end
+
+    -- Aplicar a los jugadores que entren después
+    Players.PlayerAdded:Connect(applyCustomESP)
+end) -- faltaba este cierre en tu código
