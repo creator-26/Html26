@@ -220,7 +220,7 @@ task.spawn(function()
 
         local textConstraint = Instance.new("UITextSizeConstraint")
         textConstraint.MaxTextSize = 45
-        textConstraint.MinTextSize = 15 -- antes 38 (mayor que el máximo)
+        textConstraint.MinTextSize = 16 -- antes 38 (mayor que el máximo)
         textConstraint.Parent = label
 
         local stroke = Instance.new("UIStroke")
