@@ -8,7 +8,7 @@ local State = {}
 if State.VerVida == nil then State.VerVida = true end
 
 local gui = Instance.new("ScreenGui")
-gui.Name = "MiniHub"
+gui.Name = "MiVida"
 gui.ResetOnSpawn = false
 gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
@@ -134,7 +134,7 @@ local openBtn = Instance.new("TextButton")
 openBtn.Size = UDim2.new(0, 36, 0, 36)
 openBtn.Position = UDim2.new(0.03, 0, 0.3, 0)
 openBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-openBtn.Text = "H"
+openBtn.Text = "V"
 openBtn.Font = Enum.Font.GothamBold
 openBtn.TextSize = 16
 openBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -219,8 +219,8 @@ task.spawn(function()
         label.Parent = parent
 
         local textConstraint = Instance.new("UITextSizeConstraint")
-        textConstraint.MaxTextSize = 34
-        textConstraint.MinTextSize = 14 -- antes 38 (mayor que el máximo)
+        textConstraint.MaxTextSize = 40
+        textConstraint.MinTextSize = 15 -- antes 38 (mayor que el máximo)
         textConstraint.Parent = label
 
         local stroke = Instance.new("UIStroke")
@@ -245,7 +245,7 @@ task.spawn(function()
 
             local billboard = Instance.new("BillboardGui")
             billboard.Name = "VAL_ESP"
-            billboard.Size = UDim2.new(8.5, 0, 4, 0)
+            billboard.Size = UDim2.new(15, 0, 7.5, 0)
             billboard.StudsOffset = Vector3.new(0, 6.6, 0)
             billboard.MaxDistance = 500
             billboard.AlwaysOnTop = true
