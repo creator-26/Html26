@@ -219,7 +219,7 @@ task.spawn(function()
         label.Parent = parent
 
         local textConstraint = Instance.new("UITextSizeConstraint")
-        textConstraint.MaxTextSize = 40
+        textConstraint.MaxTextSize = 45
         textConstraint.MinTextSize = 15 -- antes 38 (mayor que el máximo)
         textConstraint.Parent = label
 
@@ -245,8 +245,8 @@ task.spawn(function()
 
             local billboard = Instance.new("BillboardGui")
             billboard.Name = "VAL_ESP"
-            billboard.Size = UDim2.new(13, 0, 5, 0)
-            billboard.StudsOffset = Vector3.new(0, 10, 0)
+            billboard.Size = UDim2.new(14, 0, 5, 0)
+            billboard.StudsOffset = Vector3.new(0, 8.5, 0)
             billboard.MaxDistance = 500
             billboard.AlwaysOnTop = true
 
