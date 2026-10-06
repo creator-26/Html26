@@ -245,8 +245,8 @@ task.spawn(function()
 
             local billboard = Instance.new("BillboardGui")
             billboard.Name = "VAL_ESP"
-            billboard.Size = UDim2.new(15, 0, 8.5, 0)
-            billboard.StudsOffset = Vector3.new(0, 6.5, 0)
+            billboard.Size = UDim2.new(14, 0, 6, 0)
+            billboard.StudsOffset = Vector3.new(0, 8, 0)
             billboard.MaxDistance = 500
             billboard.AlwaysOnTop = true
 
